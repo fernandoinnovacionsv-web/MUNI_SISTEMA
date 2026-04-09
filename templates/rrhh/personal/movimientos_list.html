@@ -1,0 +1,70 @@
+{% extends 'base_adminlte.html' %}
+{% block title %}Movimientos{% endblock %}
+
+{% block content %}
+
+<div class="card shadow mt-4">
+    <div class="card-header">
+        <h4><i class="fas fa-history"></i> Historial de Movimientos</h4>
+    </div>
+
+    <div class="card-body">
+        <table id="tablaMovimientos" class="table table-striped table-bordered nowrap">
+            <thead class="table-light">
+                <tr>
+                    <th class="py-3">Agente</th>
+                    <th class="py-3">Tipo</th>
+                    <th class="py-3">Detalle</th>
+                    <th class="py-3">Fecha</th>
+                    <th class="py-3">Usuario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mov in movimientos %}
+                <tr>
+                    <td class="fw-bold text-dark">{{ mov.empleado.get_short_name }}</td>
+
+                    <td class="text-center">
+                        <span class="badge rounded-pill px-3 py-2 text-white shadow-sm
+                            {% if mov.tipo.nombre == 'ALTA' %} bg-success
+                            {% elif mov.tipo.nombre == 'BAJA' %} bg-danger
+                            {% elif mov.tipo.nombre == 'MODIFICACION' %} bg-info
+                            {% elif mov.tipo.nombre == 'VACACIONES' %} bg-primary
+                            {% elif mov.tipo.nombre == 'INDUMENTARIA' %} bg-warning text-dark
+                            {% elif mov.tipo.nombre == 'LICENCIA' %} bg-purple
+                            {% elif mov.tipo.nombre == 'SANCION' %} bg-dark
+                            {% else %} bg-secondary
+                            {% endif %}
+                        ">
+                            <i class="{{ mov.tipo.icono }} me-1"></i> {{ mov.tipo.nombre }}
+                        </span>
+                    </td>
+
+                    <td class="small text-muted">{{ mov.detalle }}</td>
+                    <td class="text-center">{{ mov.fecha|date:"d/m/Y H:i" }}</td>
+                    <td class="text-center">
+                        <span class="badge bg-light text-dark border">{{ mov.usuario.username|default:"Sistema" }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .bg-purple { background-color: #6f42c1; }
+</style>
+
+<script>
+$(document).ready(function() {
+    $('#tablaMovimientos').DataTable({
+        responsive: true,
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+        }
+    });
+});
+</script>
+
+{% endblock %}

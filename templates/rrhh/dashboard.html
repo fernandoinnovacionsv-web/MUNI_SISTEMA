@@ -1,0 +1,348 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Panel de Control RRHH{% endblock %}
+
+{% block content %}
+
+<style>
+    /* =========================================
+       Estilo de Tarjeta Moderna (Efecto Elevado)
+       ========================================= */
+    .stat-card {
+        background: #fff;
+        border: 1px solid #e0e6ed;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        position: relative;
+        height: 100%;
+        text-decoration: none !important;
+        display: block;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1); 
+    }
+
+    .stat-card-body {
+        padding: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 20px;
+    }
+
+    .icon-box {
+        width: 80px;
+        height: 80px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        flex-shrink: 0;
+    }
+
+    .bg-soft-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+    .bg-soft-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .bg-soft-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .bg-soft-danger  { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .bg-soft-info    { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .bg-soft-purple  { background-color: rgba(111, 66, 193, 0.1); color: #6f42c1; }
+
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .stat-title {
+        color: #8898aa;
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        color: #32325d;
+        font-size: 2.8rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .border-left-primary { border-left: 5px solid #007bff; }
+    .border-left-success { border-left: 5px solid #28a745; }
+    .border-left-warning { border-left: 5px solid #ffc107; }
+    .border-left-info    { border-left: 5px solid #17a2b8; }
+
+    .floating-panel {
+        background: #fff;
+        border: 1px solid #e0e6ed;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.05);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+</style>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-3 align-items-center">
+            <div class="col-sm-6">
+                <h1 class="m-0 text-dark fw-bold" style="font-size: 1.8rem;">
+                    Tablero General
+                </h1>
+                <p class="text-muted m-0">Vista general de recursos humanos</p>
+            </div>
+            <div class="col-sm-6 text-right text-end">
+                <span class="badge bg-light text-dark border p-2 shadow-sm">
+                    <i class="far fa-calendar-alt me-1"></i> {% now "d F Y" %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="row mb-4">
+            
+            {% if 'rrhh_ver_personal' in request.user_funciones %}
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="{% url 'rrhh:personal_list' %}" class="stat-card border-left-success">
+                    <div class="stat-card-body">
+                        <div class="icon-box bg-soft-success">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-title">Personal Activo</span>
+                            <span class="stat-value">{{ metrics.activos }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+            {% if 'rrhh_ver_vac_todas' in request.user_funciones or 'rrhh_pedir_vacacion' in request.user_funciones %}
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="{% url 'rrhh:vacaciones_list' %}" class="stat-card border-left-info">
+                    <div class="stat-card-body">
+                        <div class="icon-box bg-soft-info">
+                            <i class="fas fa-plane-departure"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-title">Vacaciones</span>
+                            <span class="stat-value">{{ metrics.vacaciones }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="{% url 'rrhh:licencias_list' %}" class="stat-card border-left-warning">
+                    <div class="stat-card-body">
+                        <div class="icon-box bg-soft-warning">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-title">Licencias</span>
+                            <span class="stat-value">{{ metrics.licencias }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+        </div>
+
+        <div class="row mb-4">
+            
+            {% if 'rrhh_ver_indumentaria' in request.user_funciones %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <a href="{% url 'rrhh:indumentaria_list' %}" class="stat-card">
+                    <div class="stat-card-body p-3">
+                        <div class="icon-box bg-soft-primary" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-title" style="font-size: 0.8rem;">Indumentaria</span>
+                            <span class="text-muted fw-bold">Gestión</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+            {% if 'rrhh_tomar_asistencia' in request.user_funciones %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <a href="{% url 'rrhh:toma_asistencia' %}" class="stat-card">
+                    <div class="stat-card-body p-3">
+                        <div class="icon-box bg-soft-purple" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-title" style="font-size: 0.8rem;">Asistencia</span>
+                            <span class="text-muted fw-bold">Tomar Hoy</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% else %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card opacity-50">
+                    <div class="stat-card-body p-3">
+                        <div class="icon-box bg-light" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-title" style="font-size: 0.8rem;">Asistencia</span>
+                            <span class="text-muted fw-bold">Sin Acceso</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-card-body p-3">
+                        <div class="icon-box bg-soft-danger" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-title" style="font-size: 0.8rem;">Sanciones</span>
+                            <span class="text-muted fw-bold">Total: {{ metrics.sanciones|default:0 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if 'rrhh_config_general' in request.user_funciones %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <a href="{% url 'rrhh:panel_abm_configuracion' %}" class="stat-card">
+                    <div class="stat-card-body p-3">
+                        <div class="icon-box bg-soft-warning" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-title" style="font-size: 0.8rem;">Sistema</span>
+                            <span class="text-muted fw-bold">Configuración</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+            {% if 'rrhh_crear_personal' in request.user_funciones %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                 <a href="{% url 'rrhh:personal_create' %}" class="stat-card bg-primary text-white" style="border: none;">
+                    <div class="stat-card-body p-3 justify-content-center">
+                        <i class="fas fa-plus-circle fa-2x me-2"></i>
+                        <span class="fw-bold" style="font-size: 1.1rem;">Nuevo Empleado</span>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <div class="row">
+            
+            <div class="col-lg-5 mb-4">
+                <div class="card floating-panel">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="card-title fw-bold text-dark mb-0">Estado del Personal</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="metricsChart" style="height: 280px; width: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 mb-4">
+                <div class="card floating-panel">
+                    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold text-dark mb-0">Últimos Movimientos</h5>
+                        {% if 'rrhh_ver_movimientos' in request.user_funciones %}
+                        <a href="{% url 'rrhh:movimientos_list' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Ver todos</a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Empleado</th>
+                                    <th>Tipo</th>
+                                    <th>Fecha</th>
+                                    <th class="text-end pe-4">Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mov in movimientos %}
+                                <tr>
+                                    <td class="ps-4 fw-bold text-dark">{{ mov.empleado|truncatechars:20 }}</td>
+                                    <td>
+                                        {% if mov.tipo == 'ALTA' %} <span class="badge bg-soft-success text-success">Alta</span>
+                                        {% elif mov.tipo == 'BAJA' %} <span class="badge bg-soft-danger text-danger">Baja</span>
+                                        {% elif mov.tipo == 'VACACIONES' %} <span class="badge bg-soft-info text-info">Vacaciones</span>
+                                        {% elif mov.tipo == 'INDUMENTARIA' %} <span class="badge bg-soft-primary text-primary">Ropa</span>
+                                        {% else %} <span class="badge bg-light text-dark">{{ mov.tipo }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted small">{{ mov.fecha|date:"d/m H:i" }}</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-inline-block bg-light rounded-circle text-center border" style="width: 30px; height: 30px; line-height: 30px; font-weight: bold; color: #555;">
+                                            {{ mov.usuario.username|make_list|first|upper }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">Sin actividad reciente.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const ctx = document.getElementById('metricsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Activos', 'Vacaciones', 'Licencias'],
+            datasets: [{
+                data: [{{ metrics.activos|default:0 }}, {{ metrics.vacaciones|default:0 }}, {{ metrics.licencias|default:0 }}],
+                backgroundColor: ['#28a745', '#17a2b8', '#ffc107'],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'right', labels: { usePointStyle: true, padding: 20 } }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Horas Extras - {{ sector.nombre }}</title>
+    <style>
+        @page { size: A4 portrait; margin: 15mm 15mm; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; color: #000; margin: 0; padding: 0; background-color: #fff; }
+        
+        .header {
+            width: 100%;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px; margin-bottom: 20px;
+        }
+        .titulo-muni h1 { margin: 0; font-size: 18px; color: #000; letter-spacing: 1px; }
+        .titulo-muni p { margin: 2px 0; font-size: 10px; font-weight: bold; }
+        .titulo-muni .subtitulo {
+            font-size: 12px; font-weight: bold; margin-top:5px; text-decoration: underline; text-transform: uppercase;
+        }
+
+        .datos-filtro { overflow: hidden; margin-bottom: 15px; font-size: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+
+        .empleado-title {
+            background-color: #f2f2f2; padding: 8px 12px; font-weight: bold; font-size: 12px; margin-top: 15px; border-top: 1px solid #000; border-bottom: 1px solid #000; width: 100%; box-sizing: border-box; display: table;
+        }
+        .empleado-name { display: table-cell; width: 68%; vertical-align: middle; }
+        .empleado-total { display: table-cell; width: 32%; text-align: right; vertical-align: middle; }
+        
+        table.detalle-horas { width: 100%; border-collapse: collapse; margin-top: 5px; margin-bottom: 15px; }
+        table.detalle-horas th, table.detalle-horas td { border-bottom: 1px solid #eee; padding: 5px 8px; text-align: left; font-size: 10px; }
+        table.detalle-horas th { font-weight: bold; text-transform: uppercase; color: #555; background-color: #fcfcfc;}
+        table.detalle-horas tr:nth-child(even) { background-color: #fafafa; }
+        table.detalle-horas strong { font-size: 11px; }
+
+        .no-records { text-align: center; color: #666; font-style: italic; padding: 20px; border: 1px solid #eee; margin-top: 20px; }
+        .footer-sistema { font-size: 7px; color: #666; width: 100%; text-align: right; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <table style="width:100%">
+            <tr>
+                <td style="width: 15%;">
+                    <img src="file:///D:/MUNI_SISTEMA/static/img/logo_muni_1.png" style="width:65px;">
+                </td>
+                <td style="text-align:center;" class="titulo-muni">
+                    <h1>MUNICIPALIDAD DE SAN VICENTE</h1>
+                    <p>DIRECCIÓN DE RECURSOS HUMANOS</p>
+                    <div class="subtitulo">REPORTE DE HORAS EXTRAS: {{ sector.nombre }}</div>
+                </td>
+                <td style="width: 15%; text-align: right;">
+                    <img src="file:///D:/MUNI_SISTEMA/static/img/logo_rrhh.png" style="width:65px;">
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="datos-filtro">
+        <div style="float: left;">
+            <strong>PERÍODO:</strong> {{ fecha_desde|date:"d/m/Y" }} AL {{ fecha_hasta|date:"d/m/Y" }}
+        </div>
+        <div style="float: right;">
+            <strong>FECHA DE EMISIÓN:</strong> {{ fecha_actual|date:"d/m/Y" }}
+        </div>
+    </div>
+
+    {% if reporte_data %}
+        {% for item in reporte_data %}
+            <div class="empleado-section" style="page-break-inside: avoid; margin-bottom: 30px;">
+                <div class="empleado-title">
+                    <div class="empleado-name">AGENTE: {{ item.empleado.apellido|upper }}, {{ item.empleado.nombre|upper }} (LEG: {{ item.empleado.legajo|default:"-" }})</div>
+                    <div class="empleado-total">RESUMEN DEL PERÍODO</div>
+                </div>
+                
+                <table class="detalle-horas" style="margin-bottom: 0;">
+                    <thead>
+                        <tr>
+                            <th style="width: 12%">Fecha</th>
+                            <th style="width: 48%">Detalle / Motivo</th>
+                            <th style="width: 10%; text-align: center;">Lun-Vie</th>
+                            <th style="width: 10%; text-align: center;">Sábados</th>
+                            <th style="width: 20%; text-align: center;">Dom/Fer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in item.registros %}
+                        <tr>
+                            <td>{{ reg.fecha|date:"d/m/Y" }}</td>
+                            <td style="font-size: 9px;">{{ reg.motivo_actividad|upper }}</td>
+                            <td style="text-align: center;">{% if reg.categoria == 'semana' %}<strong>{{ reg.horas_totales|floatformat:-2 }}</strong>{% else %}-{% endif %}</td>
+                            <td style="text-align: center;">{% if reg.categoria == 'sab' %}<strong>{{ reg.horas_totales|floatformat:-2 }}</strong>{% else %}-{% endif %}</td>
+                            <td style="text-align: center;">{% if reg.categoria == 'dom_fer' %}<strong>{{ reg.horas_totales|floatformat:-2 }}</strong>{% else %}-{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Resumen de Totales y Banco de Horas -->
+                <table style="width: 100%; border: 1px solid #000; background-color: #f9f9f9; border-collapse: collapse;">
+                    <tr>
+                        <td colspan="4" style="padding: 5px 8px; font-weight: bold; font-size: 10px; background-color: #e9ecef; border-bottom: 1px solid #ccc;">BANCO DE HORAS Y LIQUIDACIÓN</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-right: 1px solid #ccc; width: 25%; text-align: center;">
+                            <div style="font-size: 9px; color: #666; margin-bottom: 3px;">SALDO DISPONIBLE L-V (100%)</div>
+                            <div style="font-size: 13px; font-weight: bold;">{{ item.rem_lv|floatformat:1 }} HS</div>
+                        </td>
+                        <td style="padding: 8px; border-right: 1px solid #ccc; width: 25%; text-align: center;">
+                            <div style="font-size: 9px; color: #666; margin-bottom: 3px;">SALDO DISPONIBLE SÁBADOS</div>
+                            <div style="font-size: 13px; font-weight: bold; color: #d39e00;">{{ item.rem_sab|floatformat:1 }} HS</div>
+                        </td>
+                        <td style="padding: 8px; border-right: 1px solid #ccc; width: 25%; text-align: center;">
+                            <div style="font-size: 9px; color: #666; margin-bottom: 3px;">SALDO DISPONIBLE DOM/FER (200%)</div>
+                            <div style="font-size: 13px; font-weight: bold; color: #dc3545;">{{ item.rem_dom|floatformat:1 }} HS</div>
+                        </td>
+                        <td style="padding: 8px; background-color: #17a2b8; color: #fff; text-align: center; width: 25%;">
+                            <div style="font-size: 10px; color: #f8f9fa; margin-bottom: 3px;">SALDO A LIQUIDAR (REDONDEADO)</div>
+                            <div style="font-size: 16px; font-weight: bold;">
+                                {{ item.saldo_entero }} HS
+                            </div>
+                            <div style="font-size: 7px; color: #e9ecef;">Saldo Real: {{ item.saldo_banco_total|floatformat:2 }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-records">
+            NO HAY REGISTROS DE HORAS EXTRAS PARA EL {{ sector.nombre|upper }} ENTRE EL {{ fecha_desde|date:"d/m/Y" }} Y EL {{ fecha_hasta|date:"d/m/Y" }}.
+        </div>
+    {% endif %}
+
+    <div class="footer-sistema">
+        Municipalidad de San Vicente | Generado automáticamente: {% now "d/m/Y H:i" %}
+    </div>
+
+</body>
+</html>

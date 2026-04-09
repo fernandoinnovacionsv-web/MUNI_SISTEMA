@@ -1,0 +1,45 @@
+/* Contenedor principal del campo funciones */
+.field-funciones ul {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+    gap: 12px !important;
+    padding: 15px !important;
+    background: #fdfdfd !important;
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+    margin-left: 0 !important;
+}
+
+/* Quitar los puntos de la lista (bullets) */
+.field-funciones ul li {
+    list-style-type: none !important;
+    margin: 0 !important;
+    padding: 8px !important;
+    background: #fff !important;
+    border: 1px solid #eee !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Estilo del texto y checkbox */
+.field-funciones ul li label {
+    width: 100% !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #444 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.field-funciones ul li input[type="checkbox"] {
+    margin-right: 10px !important;
+    transform: scale(1.2) !important;
+}
+
+/* Hover para saber dónde estamos haciendo clic */
+.field-funciones ul li:hover {
+    background-color: #f0f7ff !important;
+    border-color: #b8daff !important;
+}

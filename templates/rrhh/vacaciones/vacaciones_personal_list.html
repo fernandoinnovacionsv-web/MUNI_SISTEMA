@@ -1,0 +1,168 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Vacaciones del Personal{% endblock %}
+
+{% block content %}
+
+<style>
+    .card .card-title{ font-weight:700; color: #223; }
+    .table th, .table td{ padding: 12px 16px; vertical-align: middle; }
+    .btn-outline-warning{ color: #856404; border-color: #ffe8a1; background-color: rgba(255,232,161,0.06); }
+    .btn-primary{ box-shadow: 0 3px 8px rgba(13,110,253,0.08); }
+    .btn-sm{ padding: .28rem .5rem; }
+    .card-header .card-tools .text-muted{ font-size: .95rem; }
+    td > form { margin-left: 6px; }
+    @media (max-width:768px){ .table thead { display:none; } }
+</style>
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1><i class="fas fa-umbrella-beach text-primary"></i> Vacaciones del Personal</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="row mb-3">
+            <div class="col-md-8">
+                <form method="get" class="form-inline" role="search" aria-label="Buscar vacaciones">
+                    <div class="input-group">
+                        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por apellido, nombre o DNI..." aria-label="Buscar por apellido, nombre o DNI" title="Buscar por apellido, nombre o DNI">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="submit" aria-label="Buscar" title="Buscar"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4 text-right">
+                <a href="{% url 'rrhh:vacacion_create' %}" class="btn btn-primary" title="Registrar Vacaciones" aria-label="Registrar Vacaciones"><i class="fas fa-plus-circle"></i> Registrar Vacaciones</a>
+                <a href="{% url 'rrhh:feriados_list' %}" class="btn btn-warning text-dark fw-bold" title="Cargar Feriados" aria-label="Cargar Feriados"><i class="fas fa-calendar-day"></i> Cargar Feriados</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Listado de Vacaciones</h3>
+                        <div class="card-tools">
+                            <small class="text-muted" role="status" aria-live="polite">Mostrando <span class="font-weight-bold">{{ vacaciones.count }}</span> registro(s)</small>
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover table-striped" aria-label="Listado de vacaciones">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Empleado</th>
+                                    <th scope="col">DNI</th>
+                                    <th scope="col">Inicio</th>
+                                    <th scope="col">Fin</th>
+                                    <th scope="col">Días hábiles</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col" style="width:160px; text-align:right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for v in vacaciones %}
+                                <tr>
+                                    <td>{{ v.empleado.apellido }}, {{ v.empleado.nombre }}</td>
+                                    <td>{{ v.empleado.dni }}</td>
+                                    <td>{{ v.fecha_inicio|date:"d/m/Y" }}</td>
+                                    <td>{{ v.fecha_fin|date:"d/m/Y" }}</td>
+                                    <td>{{ v.dias_habiles }}</td>
+                                    
+                                    <td>
+                                        {% if v.estado == 'aprobada' %}
+                                            <span style="background-color: #28a745; color: white; padding: 6px 12px; border-radius: 50rem; font-size: 0.85rem; font-weight: bold; display: inline-block;">
+                                                <i class="fas fa-check-circle"></i> Aprobada
+                                            </span>
+                                        {% elif v.estado == 'rechazada' %}
+                                            <span style="background-color: #dc3545; color: white; padding: 6px 12px; border-radius: 50rem; font-size: 0.85rem; font-weight: bold; display: inline-block;">
+                                                <i class="fas fa-times-circle"></i> Rechazada
+                                            </span>
+                                        {% else %}
+                                            <span style="background-color: #ffc107; color: black; padding: 6px 12px; border-radius: 50rem; font-size: 0.85rem; font-weight: bold; display: inline-block;">
+                                                <i class="fas fa-clock"></i> Pendiente
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td style="text-align:right">
+                                        {% if v.adjunto_solicitud %}
+                                            <a href="{{ v.adjunto_solicitud.url }}" target="_blank" class="btn btn-sm btn-outline-info" title="Ver Nota Adjunta" aria-label="Ver Nota Adjunta"><i class="fas fa-paperclip"></i></a>
+                                        {% endif %}
+                                        {% if v.estado == 'pendiente' %}
+                                            <form method="post" action="{% url 'rrhh:vacacion_aprobar' v.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-sm btn-success" title="Aprobar" aria-label="Aprobar vacación" onclick="return confirm('Aprobar esta vacación y generar PDF?')"><i class="fas fa-check"></i></button></form>
+                                            <form method="post" action="{% url 'rrhh:vacacion_rechazar' v.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-sm btn-danger" title="Rechazar" aria-label="Rechazar vacación" onclick="return confirm('Rechazar esta vacación?')"><i class="fas fa-times"></i></button></form>
+                                        {% elif v.estado == 'aprobada' %}
+                                            <a href="{% url 'rrhh:pdf_vacacion' v.id %}" class="btn btn-sm btn-outline-secondary" title="Descargar PDF" aria-label="Descargar nota de vacaciones" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i></a>
+                                        {% else %}
+                                            <span class="text-muted small">Sin acciones</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <i class="fas fa-plane-departure fa-2x mb-2"></i>
+                                        <div>No hay vacaciones registradas aún.</div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row d-block d-md-none">
+            <div class="col-12">
+                {% for v in vacaciones %}
+                <div class="card mb-2 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title font-weight-bold">{{ v.empleado.apellido }}, {{ v.empleado.nombre }}</h5>
+                        <p class="text-muted mb-1">DNI: {{ v.empleado.dni }}</p>
+                        <p class="mb-2">{{ v.fecha_inicio|date:"d/m/Y" }} → {{ v.fecha_fin|date:"d/m/Y" }} · <strong>{{ v.dias_habiles }}</strong> días</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            
+                            <div>
+                                {% if v.estado == 'aprobada' %}
+                                    <span style="background-color: #28a745; color: white; padding: 4px 10px; border-radius: 50rem; font-size: 0.80rem; font-weight: bold; display: inline-block;">
+                                        <i class="fas fa-check-circle"></i> Aprobada
+                                    </span>
+                                {% elif v.estado == 'rechazada' %}
+                                    <span style="background-color: #dc3545; color: white; padding: 4px 10px; border-radius: 50rem; font-size: 0.80rem; font-weight: bold; display: inline-block;">
+                                        <i class="fas fa-times-circle"></i> Rechazada
+                                    </span>
+                                {% else %}
+                                    <span style="background-color: #ffc107; color: black; padding: 4px 10px; border-radius: 50rem; font-size: 0.80rem; font-weight: bold; display: inline-block;">
+                                        <i class="fas fa-clock"></i> Pendiente
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                {% if v.estado == 'pendiente' %}
+                                    <form method="post" action="{% url 'rrhh:vacacion_aprobar' v.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-sm btn-success" title="Aprobar" onclick="return confirm('Aprobar esta vacación y generar PDF?')"><i class="fas fa-check"></i></button></form>
+                                    <form method="post" action="{% url 'rrhh:vacacion_rechazar' v.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-sm btn-danger" title="Rechazar" onclick="return confirm('Rechazar esta vacación?')"><i class="fas fa-times"></i></button></form>
+                                {% elif v.estado == 'aprobada' %}
+                                    <a href="{% url 'rrhh:pdf_vacacion' v.id %}" class="btn btn-sm btn-outline-secondary" title="Descargar PDF"><i class="fas fa-file-pdf"></i></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div></section>
+
+{% endblock %}

@@ -1,0 +1,359 @@
+{% extends "base_adminlte.html" %}
+{% block title %}Historial Asistencia - {{ empleado.apellido }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --calendar-bg: #ffffff;
+        --calendar-border: #e2e8f0;
+        --day-hover: #f8fafc;
+        --present-color: #22c55e;
+        --absent-color: #ef4444;
+        --tardanza-color: #f59e0b;
+        --franco-color: #6366f1;
+        --weekend-bg: #f1f5f9;
+        --other-month-color: #cbd5e1;
+    }
+
+    .calendar-container {
+        background: var(--calendar-bg);
+        border: 1px solid var(--calendar-border);
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    .calendar-header {
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-bottom: 1px solid var(--calendar-border);
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--calendar-border);
+    }
+
+    .day-name {
+        background: #f1f5f9;
+        padding: 0.75rem;
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+
+    .day-cell {
+        background: white;
+        min-height: 100px;
+        padding: 0.5rem;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .day-cell:hover {
+        background: var(--day-hover);
+        z-index: 1;
+        transform: scale(1.02);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    }
+
+    .day-number {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+
+    .other-month {
+        background: #f8fafc;
+    }
+    .other-month .day-number {
+        color: var(--other-month-color);
+    }
+
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 4px;
+    }
+
+    .badge-status {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: block;
+        margin-top: 4px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .bg-present { background-color: #dcfce7; color: #166534; border-left: 3px solid var(--present-color); }
+    .bg-absent { background-color: #fee2e2; color: #991b1b; border-left: 3px solid var(--absent-color); }
+    .bg-tardanza { background-color: #fef3c7; color: #92400e; border-left: 3px solid var(--tardanza-color); }
+    .bg-franco { background-color: #e0e7ff; color: #3730a3; border-left: 3px solid var(--franco-color); }
+    .bg-weekend { background-color: #f1f5f9; color: #475569; }
+
+    .current-day {
+        box-shadow: 0 0 0 2px #3b82f6 inset !important;
+        border: 2px solid #3b82f6 !important;
+    }
+
+    .details-panel {
+        max-height: 800px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .details-panel::-webkit-scrollbar {
+        width: 6px;
+    }
+    .details-panel::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .detail-card {
+        transition: transform 0.2s;
+        border-left: 4px solid transparent;
+    }
+    .detail-card:hover {
+        transform: translateX(5px);
+    }
+    .detail-card.PRESENTE { border-left-color: var(--present-color); }
+    .detail-card.AUSENTE_CON_AVISO, .detail-card.AUSENTE_SIN_AVISO { border-left-color: var(--absent-color); }
+    .detail-card.TARDANZA { border-left-color: var(--tardanza-color); }
+
+    @media (max-width: 768px) {
+        .day-cell { min-height: 60px; font-size: 0.75rem; }
+        .badge-status { display: none; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; display: block; margin: 2px auto; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2 align-items-center">
+            <div class="col-sm-6">
+                <h1 class="m-0 fw-bold"><i class="fas fa-id-card-alt text-primary me-2"></i> Historial de Personal</h1>
+            </div>
+            <div class="col-sm-6 text-end">
+                <a href="{% url 'rrhh:toma_asistencia' %}" class="btn btn-light shadow-sm border">
+                    <i class="fas fa-arrow-left me-2"></i> Volver a Asistencia
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Perfil Breve -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="border-left: 5px solid #3b82f6 !important;">
+                    <div class="card-body p-4 bg-white d-flex align-items-center">
+                        <div class="avatar-circle bg-primary text-white me-4 d-flex align-items-center justify-content-center shadow-sm" style="width: 70px; height: 70px; border-radius: 20px; font-size: 1.8rem; font-weight: 800;">
+                            {{ empleado.apellido|slice:":1" }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h3 class="mb-1 fw-bold text-dark" style="letter-spacing: -0.5px;">{{ empleado.apellido }}, {{ empleado.nombre }}</h3>
+                                    <div class="d-flex flex-wrap gap-3 mt-2">
+                                        <span class="badge bg-light text-primary border px-3 py-2 rounded-3 shadow-none">
+                                            <i class="fas fa-id-badge me-2"></i><strong>Legajo:</strong> {{ empleado.legajo|default:"-" }}
+                                        </span>
+                                        <span class="badge bg-light text-dark border px-3 py-2 rounded-3 shadow-none">
+                                            <i class="fas fa-sitemap me-2 text-primary"></i><strong>Sector:</strong> {{ empleado.sector|default:"-" }}
+                                        </span>
+                                        <span class="badge bg-light text-dark border px-3 py-2 rounded-3 shadow-none">
+                                            <i class="fas fa-layer-group me-2 text-primary"></i><strong>Subsector:</strong> {{ empleado.subsector|default:"-" }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-end d-none d-md-block">
+                                    <span class="text-muted small d-block mb-1">Estado Actual</span>
+                                    <span class="badge bg-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle me-1"></i> ACTIVO</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Calendario Left -->
+            <div class="col-lg-8">
+                <div class="calendar-container mb-4">
+                    <div class="calendar-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-bold text-dark">{{ mes_nombre }} {{ anio }}</h4>
+                        
+                        <div class="d-flex align-items-center gap-3">
+                            {% if mes_cerrado %}
+                                <span class="badge bg-dark rounded-pill px-3 py-2"><i class="fas fa-lock me-1"></i> MES CERRADO</span>
+                            {% else %}
+                                <span class="badge bg-success shadow-sm rounded-pill px-3 py-2"><i class="fas fa-lock-open me-1"></i> PERIODO ABIERTO</span>
+                            {% endif %}
+                            
+                            <form method="GET" class="d-flex gap-2 align-items-center border-start ps-3">
+                                <select name="mes" class="form-select form-select-sm border-0 bg-light shadow-none" onchange="this.form.submit()">
+                                    {% for m_num, m_name in months_list %}
+                                        <option value="{{ m_num }}" {% if m_num == mes %}selected{% endif %}>{{ m_name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select name="anio" class="form-select form-select-sm border-0 bg-light shadow-none" onchange="this.form.submit()">
+                                    {% for y in years_list %}
+                                        <option value="{{ y }}" {% if y == anio %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="calendar-grid">
+                        <div class="day-name">Dom</div>
+                        <div class="day-name">Lun</div>
+                        <div class="day-name">Mar</div>
+                        <div class="day-name">Mié</div>
+                        <div class="day-name">Jue</div>
+                        <div class="day-name">Vie</div>
+                        <div class="day-name">Sáb</div>
+
+                        {% for week in calendar_data %}
+                            {% for day in week %}
+                                <div class="day-cell {% if not day.is_current_month %}other-month{% endif %} {% if day.is_today %}current-day{% endif %}">
+                                    <div class="day-number">{{ day.date.day }}</div>
+                                    
+                                    {% if day.is_current_month %}
+                                        <!-- Contenido del día -->
+                                        {% if day.is_franco %}
+                                            <span class="badge-status bg-franco">FRANCO</span>
+                                        {% elif day.is_feriado %}
+                                            <span class="badge-status bg-info text-white">FERIADO</span>
+                                        {% elif day.asistencia %}
+                                            {% with a=day.asistencia %}
+                                                {% if a.estado == 'PRESENTE' %}
+                                                    <span class="badge-status bg-present">PRESENTE</span>
+                                                {% elif a.estado == 'TARDANZA' %}
+                                                    <span class="badge-status bg-tardanza">TARDANZA</span>
+                                                {% elif 'AUSENTE' in a.estado %}
+                                                    <span class="badge-status bg-absent">AUSENTE</span>
+                                                {% else %}
+                                                    <span class="badge-status bg-secondary text-white">{{ a.estado }}</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% elif day.is_weekend %}
+                                            <span class="badge-status bg-weekend">FIN DE SEM.</span>
+                                        {% elif day.is_laboral %}
+                                            <!-- Día laboral sin registro -->
+                                            {% if mes_cerrado or day.date < primer_dia_mes_actual %}
+                                                <span class="badge-status bg-present opacity-50" title="Cierre de mes: Tomado como presente">PRESENTE *</span>
+                                            {% elif day.date < hoy %}
+                                                <span class="badge-status bg-warning text-dark border-warning shadow-sm" style="font-size:0.6rem; font-weight: 800;">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i> PENDIENTE CARGA
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="p-3 bg-light border-top text-muted" style="font-size: 0.75rem;">
+                        <div class="d-flex flex-wrap gap-3">
+                            <span><i class="fas fa-circle text-success me-1"></i> Presente</span>
+                            <span><i class="fas fa-circle text-danger me-1"></i> Ausente</span>
+                            <span><i class="fas fa-circle text-warning me-1"></i> Tardanza</span>
+                            <span><i class="fas fa-circle text-info me-1"></i> Franco / Feriado</span>
+                            <span>* Días sin registro en meses pasados se asumen Presente.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalle Right -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-list-ul text-primary me-2"></i> Detalles del Mes</h5>
+                    </div>
+                    <div class="card-body p-3 details-panel">
+                        {% if registros %}
+                            {% for r in registros %}
+                            <div class="detail-card {{ r.estado }} card mb-3 border shadow-none rounded-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0 fw-bold">{{ r.fecha|date:"D d M, Y" }}</h6>
+                                        {% if r.bloqueado %}
+                                            <i class="fas fa-lock text-muted" title="Registro Bloqueado"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        {% if r.estado == 'PRESENTE' %}
+                                            <span class="badge bg-success-soft text-success"><i class="fas fa-check-circle me-1"></i> Presente</span>
+                                        {% elif r.estado == 'TARDANZA' %}
+                                            <span class="badge bg-warning-soft text-warning"><i class="fas fa-clock me-1"></i> Tardanza</span>
+                                        {% elif 'AUSENTE' in r.estado %}
+                                            <span class="badge bg-danger-soft text-danger"><i class="fas fa-times-circle me-1"></i> {{ r.get_estado_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary-soft text-secondary">{{ r.get_estado_display }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if r.motivo_ausencia %}
+                                        <p class="mt-2 mb-0 small text-muted border-top pt-2">
+                                            <strong>Obs:</strong> {{ r.motivo_ausencia }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-info-circle text-muted fa-2x mb-3"></i>
+                                <p class="text-muted small">No hay registros detallados para este mes.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Resumen Estadístico -->
+                <div class="card border-0 shadow-sm rounded-4 mt-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i class="fas fa-chart-pie me-2 text-primary"></i> Resumen de Mes</h6>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-muted">Total Días Laborales:</span>
+                                <span class="fw-bold fs-5 text-dark">{{ total_laborales }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between pt-1">
+                                <span class="text-muted">Estado Periodo:</span>
+                                {% if mes_cerrado %}
+                                    <span class="badge bg-dark">Cerrado</span>
+                                {% else %}
+                                    <span class="badge bg-success">En Curso</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Posibles mejoras interactivas
+</script>
+{% endblock %}

@@ -1,0 +1,98 @@
+<h5 class="section-title">Datos del cónyuge</h5>
+
+{{ conyuge_form.id }}
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">DNI</label>
+        {{ conyuge_form.dni }}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label text-muted small fw-bold">Apellido</label>
+        {{ conyuge_form.apellido }}
+    </div>
+    <div class="col-md-5">
+        <label class="form-label text-muted small fw-bold">Nombre</label>
+        {{ conyuge_form.nombre }}
+    </div>
+</div>
+
+<hr>
+
+<h5 class="section-title">Hijos</h5>
+
+{{ hijos_formset.management_form }}
+
+<div id="hijos-container">
+
+    {% for form in hijos_formset %}
+    <div class="form-inline-box form-row-dynamic mb-3 p-3 border rounded bg-white">
+        
+        {{ form.id }}
+
+        <div class="row align-items-end">
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">DNI</label>
+                {{ form.dni }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Apellido</label>
+                {{ form.apellido }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Nombre</label>
+                {{ form.nombre }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Nacimiento</label>
+                {{ form.fecha_nacimiento }}
+            </div>
+            
+            {% if form.DELETE %}
+            <div class="col-md-1 text-end">
+                <div class="d-none">{{ form.DELETE }}</div> 
+                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<div id="empty-form-hijo" class="d-none">
+    <div class="form-inline-box form-row-dynamic mb-3 p-3 border rounded bg-white">
+        
+        {{ hijos_formset.empty_form.id }}
+
+        <div class="row align-items-end">
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">DNI</label>
+                {{ hijos_formset.empty_form.dni }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Apellido</label>
+                {{ hijos_formset.empty_form.apellido }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Nombre</label>
+                {{ hijos_formset.empty_form.nombre }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Nacimiento</label>
+                {{ hijos_formset.empty_form.fecha_nacimiento }}
+            </div>
+            <div class="col-md-1 text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="btn btn-outline-primary btn-sm mt-2 fw-bold" onclick="addForm('hijos-container', 'hijos', 'empty-form-hijo')">
+    <i class="fas fa-plus-circle me-1"></i> Agregar hijo
+</button>

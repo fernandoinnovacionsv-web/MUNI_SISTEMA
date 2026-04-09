@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page_title }} · {{ SYSTEM_NAME }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <style>
+    body { background-color: #f5f6fa; }
+    .sidebar {
+      height: 100vh;
+      background: linear-gradient(180deg, #005CFF 0%, #003EAA 100%);
+      color: white;
+      position: fixed;
+      width: 230px;
+      top: 0;
+      left: 0;
+      padding-top: 1rem;
+    }
+    .sidebar a { color: white; text-decoration: none; display: block; padding: 0.6rem 1rem; }
+    .sidebar a:hover { background: rgba(255,255,255,0.1); border-radius: 5px; }
+    .content { margin-left: 240px; padding: 2rem; }
+    .topbar {
+      background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      padding: 0.8rem 1.5rem; margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  {% include 'rrhh/includes/sidebar.html' %}
+  <div class="content">
+    {% include 'rrhh/includes/topbar.html' %}
+    {% block content %}{% endblock %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

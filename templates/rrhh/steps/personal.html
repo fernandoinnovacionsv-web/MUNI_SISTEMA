@@ -1,0 +1,54 @@
+<h5 class="section-title">Datos personales</h5>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">DNI</label>
+        {{ empleado_form.dni }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Apellido</label>
+        {{ empleado_form.apellido }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Nombre</label>
+        {{ empleado_form.nombre }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Fecha de nacimiento</label>
+        {{ empleado_form.fecha_nacimiento }}
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Sexo</label>
+        {{ empleado_form.sexo }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Nacionalidad</label>
+        {{ empleado_form.nacionalidad }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Estado civil</label>
+        {{ empleado_form.estado_civil }}
+    </div>
+</div>
+
+<hr class="my-4">
+
+<h5 class="section-title mt-3">Domicilio</h5>
+
+<div class="row mb-3">
+    <div class="col-md-5">
+        <label class="form-label text-muted small fw-bold">Calle</label>
+        {{ empleado_form.calle }}
+    </div>
+    <div class="col-md-2">
+        <label class="form-label text-muted small fw-bold">Número</label>
+        {{ empleado_form.numero }}
+    </div>
+    <div class="col-md-5">
+        <label class="form-label text-muted small fw-bold">Barrio</label>
+        {{ empleado_form.barrio }}
+    </div>
+</div>

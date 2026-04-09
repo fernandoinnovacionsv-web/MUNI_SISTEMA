@@ -1,0 +1,70 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-stethoscope"></i> {% if form.instance.pk %}Editar{% else %}Cargar{% endif %} Seguimiento Médico</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Fecha Consulta</label>
+                                {{ form.fecha_consulta }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Médico</label>
+                                {{ form.medico }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Evolución / Dictamen</label>
+                            {{ form.evolucion }}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Próximo Control</label>
+                                {{ form.proximo_control }}
+                            </div>
+                            <div class="col-md-4 d-flex align-items-center mt-4">
+                                <div class="form-check">
+                                    {{ form.es_alta_medica }}
+                                    <label class="form-check-label fw-bold" for="{{ form.es_alta_medica.id_for_label }}">Es Alta Médica</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN DE EXTENSIÓN OPCIONAL -->
+                        <div class="mt-4 p-3 bg-light border rounded">
+                            <h6 class="text-primary fw-bold mb-3"><i class="fas fa-calendar-plus"></i> ¿Extender Licencia? (Opcional)</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Nueva Fecha Hasta</label>
+                                    {{ form.extender_hasta }}
+                                    <small class="text-muted">{{ form.extender_hasta.help_text }}</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Subir Nuevo Certificado</label>
+                                    {{ form.nuevo_certificado }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'rrhh:seguimiento_detalle' solicitud_id %}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar Seguimiento</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

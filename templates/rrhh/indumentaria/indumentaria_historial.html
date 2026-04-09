@@ -1,0 +1,205 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Historial de Indumentaria{% endblock %}
+
+{% block content %}
+
+<style>
+.carrito-item {
+    border-left: 4px solid #28a745;
+    background: #f8fff8;
+}
+/* Estilo para que el botón PDF se vea más profesional */
+.btn-pdf {
+    transition: all 0.3s;
+}
+.btn-pdf:hover {
+    background-color: #dc3545;
+    color: white !important;
+    transform: scale(1.1);
+}
+</style>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h4 class="text-primary mb-0">
+            <i class="fas fa-user-tag me-2"></i>
+            {{ empleado.apellido }}, {{ empleado.nombre }}
+            <span class="text-muted small"> | DNI {{ empleado.dni }}</span>
+        </h4>
+    </div>
+
+    <div class="card-body">
+
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <h5 class="text-secondary mb-0"><i class="fas fa-cart-plus me-2"></i>Registrar nueva entrega</h5>
+            <button class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalStock">
+                <i class="fas fa-plus-circle me-1"></i> Agregar prenda
+            </button>
+        </div>
+
+        <div class="card mb-4 border-success">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-shopping-basket me-2"></i><strong>Carrito de entrega actual</strong>
+            </div>
+
+            <div class="card-body">
+                {% if carrito %}
+                <ul class="list-group">
+                    {% for item in carrito %}
+                    <li class="list-group-item carrito-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-success me-2">{{ forloop.counter }}</span>
+                            <strong>{{ item.prenda }}</strong> — Talle: <span class="badge bg-secondary">{{ item.talle }}</span>
+                            <span class="badge bg-primary ms-2">{{ item.cantidad }} unidad/es</span>
+                        </div>
+                        <a href="{% url 'rrhh:indumentaria_carrito_remove' forloop.counter0 %}"
+                           class="btn btn-sm btn-outline-danger" title="Quitar">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="text-end mt-3">
+                    <a href="{% url 'rrhh:indumentaria_confirmar' empleado.id %}"
+                       class="btn btn-primary btn-lg shadow">
+                        <i class="fas fa-check-double me-1"></i> Finalizar y Confirmar Entrega
+                    </a>
+                </div>
+
+                {% else %}
+                <div class="text-center py-3">
+                    <p class="text-muted mb-0"><i class="fas fa-info-circle me-1"></i> No hay prendas seleccionadas para entregar.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="text-secondary mb-0"><i class="fas fa-history me-2"></i>Historial de entregas realizadas</h5>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered shadow-sm">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th style="width: 15%">Fecha</th>
+                        <th>Prenda / Artículo</th>
+                        <th>Talle</th>
+                        <th>Cant.</th>
+                        <th>Registrado por</th>
+                        <th style="width: 10%">PDF</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white">
+                    {% for e in entregas %}
+                    <tr>
+                        <td class="text-center fw-bold">{{ e.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ e.prenda|upper }}</td>
+                        <td class="text-center"><span class="badge bg-info text-dark">{{ e.talle }}</span></td>
+                        <td class="text-center font-weight-bold">{{ e.cantidad }}</td>
+                        <td><small class="text-muted"><i class="fas fa-user small me-1"></i>{{ e.usuario.username }}</small></td>
+                        <td class="text-center">
+                            <a href="{% url 'rrhh:entrega_pdf' e.id %}" 
+                               target="_blank" 
+                               class="btn btn-sm btn-outline-danger btn-pdf"
+                               title="Ver Comprobante de Entrega">
+                               <i class="fas fa-file-pdf fa-lg"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-folder-open fa-2x d-block mb-2"></i>
+                            No se registran entregas previas para este agente.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalStock" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+    
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="fas fa-boxes me-2"></i>Seleccionar indumentaria del Stock</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="input-group mb-3">
+            <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+            <input type="text" id="buscarStock" class="form-control" placeholder="Escriba el nombre de la prenda para filtrar...">
+        </div>
+
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-sm table-hover">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th>Prenda</th>
+                        <th>Talle</th>
+                        <th class="text-center">Stock Disponible</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaStock">
+                    {% for item in stock %}
+                    <tr>
+                        <form method="POST" action="{% url 'rrhh:indumentaria_carrito_add' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="empleado_id" value="{{ empleado.id }}">
+                            <input type="hidden" name="prenda" value="{{ item.prenda }}">
+                            <input type="hidden" name="talle" value="{{ item.talle }}">
+                            <td class="fw-bold">{{ item.prenda }}</td>
+                            <td>{{ item.talle }}</td>
+                            <td class="text-center">
+                                {% if item.cantidad > 0 %}
+                                    <span class="badge bg-success">{{ item.cantidad }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Sin Stock</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="input-group input-group-sm" style="width: 130px; margin: 0 auto;">
+                                    <input type="number" name="cantidad" value="1" min="1" max="{{ item.cantidad }}" 
+                                           class="form-control" {% if item.cantidad <= 0 %}disabled{% endif %}>
+                                    <button type="submit" class="btn btn-success"
+                                            {% if item.cantidad <= 0 %}disabled{% endif %}>
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </form>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("buscarStock").addEventListener("keyup", function() {
+    const texto = this.value.toLowerCase();
+    document.querySelectorAll("#tablaStock tr").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(texto) ? "" : "none";
+    });
+});
+</script>
+
+{% endblock %}

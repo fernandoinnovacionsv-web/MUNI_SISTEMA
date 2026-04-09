@@ -1,0 +1,41 @@
+{% extends 'base_adminlte.html' %}
+{% block content %}
+<div class="container d-flex justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="card-header bg-warning py-3 text-center">
+                <h5 class="fw-bold mb-0 text-dark">REGISTRO DE HORAS EXTRAS</h5>
+                <small class="text-dark fw-bold">{{ empleado.get_full_name }}</small>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Fecha de realización:</label>
+                            <input type="date" name="fecha" class="form-control" required value="{{ hoy|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Hora Inicio:</label>
+                            <input type="time" name="hora_inicio" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Hora Fin:</label>
+                            <input type="time" name="hora_fin" class="form-control" required>
+                        </div>
+                        <div class="col-12 mb-4">
+                            <label class="form-label fw-bold">Detalle de la tarea realizada:</label>
+                            <textarea name="detalle" class="form-control" rows="4" placeholder="Describa brevemente la labor efectuada..." required></textarea>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-dark btn-block btn-lg fw-bold shadow">
+                        <i class="fas fa-check-circle mr-2 text-warning"></i> REGISTRAR HORAS
+                    </button>
+                    <a href="javascript:history.back()" class="btn btn-link btn-block text-muted">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

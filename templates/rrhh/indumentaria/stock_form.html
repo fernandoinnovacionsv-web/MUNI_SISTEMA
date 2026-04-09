@@ -1,0 +1,81 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Gestión de Stock{% endblock %}
+
+{% block content %}
+<div class="card card-outline card-primary">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-boxes me-2"></i> {% if is_edit %}Editar Stock{% else %}Agregar Nuevo Stock{% endif %}
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-5 border-end">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label>Prenda</label>
+                        {{ form.prenda|add_class:"form-control" }}
+                    </div>
+                    <div class="mb-3">
+                        <label>Talle</label>
+                        {{ form.talle|add_class:"form-control" }}
+                    </div>
+                    <div class="mb-3">
+                        <label>Cantidad a sumar</label>
+                        {{ form.cantidad|add_class:"form-control" }}
+                    </div>
+
+                    <button class="btn btn-success w-100 fw-bold">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </form>
+            </div>
+
+            <div class="col-md-7 ps-4">
+                <h5 class="text-muted mb-3">Stock Actual</h5>
+                
+                <form method="get" class="mb-2">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="buscar" value="{{ query }}" class="form-control" placeholder="Buscar prenda...">
+                        <button class="btn btn-outline-secondary"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm table-striped">
+                        <thead class="table-dark">
+                            <tr><th>Prenda</th><th>Talle</th><th>Cant.</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for s in stock %}
+                            <tr>
+                                <td>{{ s.prenda }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ s.talle }}</span></td>
+                                <td>
+                                    {% if s.cantidad > 0 %}
+                                        <span class="badge bg-success">{{ s.cantidad }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">0</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

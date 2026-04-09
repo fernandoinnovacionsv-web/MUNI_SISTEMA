@@ -1,0 +1,235 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Configuración para impresión A4 exacta */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #1a1a1a;
+            background-color: #fff;
+        }
+
+        /* Cada sección ocupa exactamente el 50% de la hoja */
+        .seccion-comprobante {
+            height: 50vh; 
+            width: 100%;
+            padding: 35px 50px;
+            box-sizing: border-box;
+            position: relative;
+            display: block;
+        }
+
+        /* Línea de puntos para corte */
+        .linea-corte {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            border-top: 1px dashed #bbb;
+            text-align: center;
+        }
+        .linea-corte span {
+            position: relative;
+            top: -10px;
+            background: white;
+            padding: 0 15px;
+            font-size: 9px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Encabezado Institucional */
+        .header {
+            width: 100%;
+            border-bottom: 3px solid #004a99;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .header-table { width: 100%; border-collapse: collapse; }
+        .logo { width: 70px; height: auto; }
+        .titulo-muni {
+            text-align: center;
+            color: #004a99;
+        }
+        .titulo-muni h1 { margin: 0; font-size: 18px; letter-spacing: 1px; }
+        .titulo-muni p { margin: 2px 0; font-size: 10px; font-weight: bold; color: #333; }
+
+        .badge-copia {
+            float: right;
+            background: #f1f3f5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        /* Cuadro de Datos del Agente */
+        .datos-agente {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 1px solid #e9ecef;
+        }
+        .grid-datos { width: 100%; border-collapse: collapse; }
+        .grid-datos td { padding: 3px 0; font-size: 11px; }
+        .label { font-weight: bold; color: #004a99; text-transform: uppercase; font-size: 8px; width: 100px; }
+
+        /* Contenido de la Licencia */
+        .detalle-licencia {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        .detalle-licencia td {
+            padding: 6px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+
+        /* Zona de Firmas */
+        .contenedor-firmas {
+            width: 100%;
+            margin-top: 25px;
+        }
+        .firma-box {
+            width: 45%;
+            text-align: center;
+            vertical-align: top;
+        }
+        .espacio-sello { height: 50px; } 
+        .linea-firma { border-top: 1.5px solid #333; margin: 0 20px 5px 20px; }
+        .texto-firma { font-size: 9px; font-weight: bold; color: #111; }
+        .sub-firma { font-size: 8px; color: #555; font-style: italic; }
+
+        .footer-sistema {
+            position: absolute;
+            bottom: 12px;
+            right: 50px;
+            font-size: 7px;
+            color: #999;
+        }
+        .info-registro {
+            font-size: 9px;
+            color: #444;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+{% for i in "12" %}
+<div class="seccion-comprobante">
+    
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td style="width: 15%;"><img src="file:///D:/MUNI_SISTEMA/static/img/logo_muni_1.png" class="logo"></td>
+                <td class="titulo-muni">
+                    <h1>MUNICIPALIDAD DE SAN VICENTE</h1>
+                    <p>DIRECCIÓN DE RECURSOS HUMANOS</p>
+                    <div style="margin-top: 4px; font-size: 9px; color: #000; font-weight: bold; text-decoration: underline;">
+                        NOTIFICACIÓN DE LICENCIA ANUAL ORDINARIA (VACACIONES)
+                    </div>
+                </td>
+                <td style="width: 15%; text-align: right;"><img src="file:///D:/MUNI_SISTEMA/static/img/logo_rrhh.png" class="logo"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="overflow: hidden; margin-bottom: 8px;">
+        <div style="float: left;">
+            <span style="font-size: 10px; font-weight: bold; color: #333;">FECHA DE EMISIÓN: {{ fecha_actual|date:"d/m/Y" }}</span>
+            <div class="info-registro">
+                <strong>REGISTRADO POR:</strong> 
+                {% if usuario.get_full_name %}{{ usuario.get_full_name|upper }}{% else %}{{ usuario.username|upper }}{% endif %}
+            </div>
+        </div>
+        <span class="badge-copia">
+            {% if forloop.first %}ORIGINAL: LEGAJO PERSONAL{% else %}DUPLICADO: PARA EL AGENTE{% endif %}
+        </span>
+    </div>
+
+    <div class="datos-agente">
+        <table class="grid-datos">
+            <tr>
+                <td class="label">Agente:</td>
+                <td style="font-size: 13px; font-weight: bold;">{{ empleado.apellido|upper }}, {{ empleado.nombre|upper }}</td>
+                <td class="label">Legajo:</td>
+                <td style="font-weight: bold;">{{ empleado.legajo|default:"---" }}</td>
+            </tr>
+            <tr>
+                <td class="label">DNI:</td>
+                <td>{{ empleado.dni }}</td>
+                <td class="label">Área / Sector:</td>
+                <td style="font-weight: bold;">{{ empleado.sector|upper|default:"NO ASIGNADO" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="detalle-licencia">
+        <tr>
+            <td class="label" style="border:none;">Año Correspondiente:</td>
+            <td style="border:none; font-weight: bold;">{{ vacacion.anio }}</td>
+            <td class="label" style="border:none;">Días Otorgados:</td>
+            <td style="border:none; font-weight: bold;">{{ vacacion.dias_otorgados }} días</td>
+        </tr>
+        <tr>
+            <td class="label">Desde el día:</td>
+            <td style="font-weight: bold; color: #004a99;">{{ vacacion.fecha_inicio|date:"d/m/Y" }}</td>
+            <td class="label">Hasta el día:</td>
+            <td style="font-weight: bold;">{{ vacacion.fecha_fin|date:"d/m/Y" }} (inclusive)</td>
+        </tr>
+        <tr>
+            <td class="label">Fecha de Reintegro:</td>
+            <td colspan="3" style="font-size: 14px; font-weight: bold; color: #d63384;">{{ fecha_reintegro|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Observaciones:</td>
+            <td colspan="3" style="font-style: italic; font-size: 10px;">{{ vacacion.observaciones|default:"Sin observaciones particulares." }}</td>
+        </tr>
+    </table>
+
+    <table class="contenedor-firmas">
+        <tr>
+            <td class="firma-box">
+                <div class="espacio-sello"></div>
+                <div class="linea-firma"></div>
+                <div class="texto-firma">FIRMA DEL AGENTE</div>
+                <div class="sub-firma">DNI: {{ empleado.dni }}</div>
+            </td>
+            <td style="width: 10%;"></td>
+            <td class="firma-box">
+                <div class="espacio-sello"></div>
+                <div class="linea-firma"></div>
+                <div class="texto-firma">RESPONSABLE RRHH</div>
+                <div class="sub-firma">Sello y Firma Autorizada</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer-sistema">
+        ALFA SISTEMAS RRHH | Nota Ref: #VAC-{{ vacacion.id }} | Impreso: {% now "d/m/Y H:i" %}
+    </div>
+
+    {% if forloop.first %}
+    <div class="linea-corte">
+        <span>✂ CORTE POR AQUÍ PARA SEPARAR COMPROBANTES ✂</span>
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+</body>
+</html>

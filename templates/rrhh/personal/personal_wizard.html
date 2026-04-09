@@ -1,0 +1,316 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+{% block title %}
+  {% if is_edit %}Editar Legajo{% else %}Alta de Personal{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<style>
+    /* =========================================
+       Estilos del Wizard - Elevación Pronunciada
+       ========================================= */
+    .wizard-card { 
+        border-radius: 12px; 
+        border: 1px solid #e0e6ed; 
+        /* Sombra aumentada: Mayor desenfoque (40px) y un poco más de opacidad */
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.08); 
+        overflow: hidden; 
+        background: #fff; 
+        position: relative;
+        z-index: 1;
+        /* Un pequeño margen extra abajo por si la sombra choca con algo */
+        margin-bottom: 20px; 
+    }
+    
+    .wizard-header { background: #fff; padding: 25px 20px 15px; border-bottom: 1px solid #eaebf0; }
+    
+    /* Pasos */
+    .step-indicator { display: flex; justify-content: space-between; position: relative; margin-bottom: 10px; max-width: 900px; margin: 0 auto 10px auto; }
+    .step-indicator::before { content: ''; position: absolute; top: 18px; left: 0; right: 0; height: 3px; background: #e9ecef; z-index: 0; }
+    .step { position: relative; z-index: 1; text-align: center; width: 100%; cursor: default; }
+    
+    .step-icon { 
+        width: 40px; height: 40px; background: #fff; border: 2px solid #e9ecef; color: #adb5bd; 
+        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+        margin: 0 auto 8px; font-weight: bold; transition: all 0.3s; font-size: 1.1rem;
+    }
+    
+    .step.active .step-icon { border-color: #0d6efd; color: #0d6efd; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1); transform: scale(1.1); }
+    .step.completed .step-icon { background: #198754; border-color: #198754; color: #fff; }
+    
+    .step-text { font-size: 0.75rem; color: #adb5bd; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .step.active .step-text { color: #0d6efd; }
+    .step.completed .step-text { color: #198754; }
+
+    /* =========================================
+       Fondo del Formulario (Contraste Suave)
+       ========================================= */
+    .wizard-content { 
+        padding: 40px; 
+        background-color: #edf1f5; 
+        min-height: 450px; 
+    }
+    
+    .wizard-panel { display: none; animation: fadeIn 0.4s ease-out; }
+    .wizard-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Footer */
+    .wizard-footer { background: #fff; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eaebf0; }
+
+    /* =========================================
+       Inputs que resaltan (Cajas Blancas con Relieve)
+       ========================================= */
+    .form-control, .form-select {
+        background-color: #ffffff !important; 
+        border: 1px solid #cdd4dc; 
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        color: #495057;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); 
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Estado activo / enfocado */
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd !important;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15), 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+        outline: none;
+    }
+
+    /* Labels nítidos */
+    .form-label {
+        font-weight: 600;
+        color: #343a40; 
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+        letter-spacing: 0.2px;
+    }
+    
+    /* Títulos de sección armónicos con el azul de AdminLTE */
+    .section-title {
+        color: #0d6efd; 
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #cdd4dc;
+    }
+</style>
+
+<div class="container my-4">
+    <form method="POST" enctype="multipart/form-data" id="wizardForm">
+        {% csrf_token %}
+
+        <div class="card wizard-card">
+            
+            <div class="wizard-header">
+                <div class="step-indicator">
+                    <div class="step active" data-step="0"><div class="step-icon"><i class="fas fa-user"></i></div><div class="step-text">Personal</div></div>
+                    <div class="step" data-step="1"><div class="step-icon"><i class="fas fa-briefcase"></i></div><div class="step-text">Laboral</div></div>
+                    <div class="step" data-step="2"><div class="step-icon"><i class="fas fa-users"></i></div><div class="step-text">Familia</div></div>
+                    <div class="step" data-step="3"><div class="step-icon"><i class="fas fa-address-book"></i></div><div class="step-text">Contacto</div></div>
+                    <div class="step" data-step="4"><div class="step-icon"><i class="fas fa-tshirt"></i></div><div class="step-text">Ropa</div></div>
+                    <div class="step" data-step="5"><div class="step-icon"><i class="fas fa-camera"></i></div><div class="step-text">Foto</div></div>
+                    <div class="step" data-step="6"><div class="step-icon"><i class="fas fa-file-alt"></i></div><div class="step-text">Docs</div></div>
+                </div>
+            </div>
+
+            <div class="wizard-content">
+
+                {% if empleado_form.errors or conyuge_form.errors or hijos_formset.errors or documentos_formset.errors or indumentaria_formset.errors %}
+                    <div class="alert alert-danger shadow-sm border-0 mb-4 rounded-3" style="background-color: #fef2f2; border-left: 4px solid #ef4444 !important;">
+                        <h6 class="fw-bold mb-2 text-danger" style="font-size: 0.95rem;">
+                            <i class="fas fa-exclamation-circle me-2"></i> No se pudo guardar. Corrige los siguientes detalles:
+                        </h6>
+                        <ul class="mb-0 small text-danger fw-medium" style="list-style-type: square; padding-left: 20px;">
+                            
+                            {% for field in empleado_form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in empleado_form.non_field_errors %}
+                                <li><strong>General:</strong> {{ error }}</li>
+                            {% endfor %}
+
+                            {% for field in conyuge_form %}
+                                {% for error in field.errors %}
+                                    <li><strong>Cónyuge ({{ field.label }}):</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+
+                            {% if hijos_formset.total_error_count > 0 %}
+                                <li><strong>Pestaña Familia (Hijos):</strong> Faltan datos o hay formatos incorrectos en los hijos agregados.</li>
+                            {% endif %}
+                            
+                            {% if documentos_formset.total_error_count > 0 %}
+                                <li><strong>Pestaña Documentos:</strong> Faltan seleccionar archivos o tipos de documentos.</li>
+                            {% endif %}
+                            
+                            {% if indumentaria_formset.total_error_count > 0 %}
+                                <li><strong>Pestaña Ropa:</strong> Faltan completar talles en las prendas agregadas.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endif %}
+                <div class="wizard-panel active">{% include "rrhh/steps/personal.html" %}</div>
+                <div class="wizard-panel">{% include "rrhh/steps/laboral.html" %}</div>
+                <div class="wizard-panel">{% include "rrhh/steps/familiar.html" %}</div>
+                <div class="wizard-panel">{% include "rrhh/steps/contacto.html" %}</div>
+                <div class="wizard-panel">{% include "rrhh/steps/indumentaria.html" %}</div>
+                <div class="wizard-panel">{% include "rrhh/steps/foto.html" %}</div>
+                <div class="wizard-panel">{% include "rrhh/steps/documentos.html" %}</div>
+            </div>
+
+            <div class="wizard-footer">
+                <button type="button" class="btn btn-outline-secondary px-4 fw-bold" id="prevBtn" disabled>
+                    <i class="fas fa-arrow-left me-2"></i> Anterior
+                </button>
+                
+                <div class="d-flex gap-3 align-items-center">
+                    <a href="{% url 'rrhh:personal_list' %}" class="btn btn-link text-muted text-decoration-none fw-bold">Cancelar</a>
+                    
+                    <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" id="nextBtn">
+                        Siguiente <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    
+                    <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm d-none" id="submitBtn">
+                        <i class="fas fa-check-circle me-2"></i> Guardar y Finalizar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // --- WIZARD NAVIGATION ---
+    const panels = document.querySelectorAll(".wizard-panel");
+    const steps = document.querySelectorAll(".step");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    let currentStep = 0;
+
+    function showStep(index) {
+        panels.forEach((p, i) => p.classList.toggle("active", i === index));
+        steps.forEach((s, i) => {
+            s.classList.toggle("active", i === index);
+            s.classList.toggle("completed", i < index);
+        });
+
+        prevBtn.disabled = index === 0;
+        
+        if (index === panels.length - 1) {
+            nextBtn.classList.add("d-none");
+            submitBtn.classList.remove("d-none");
+        } else {
+            nextBtn.classList.remove("d-none");
+            submitBtn.classList.add("d-none");
+        }
+        
+        document.querySelector('.wizard-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    nextBtn.addEventListener("click", () => {
+        if (currentStep < panels.length - 1) {
+            const currentPanelInputs = panels[currentStep].querySelectorAll("input[required], select[required]");
+            let valid = true;
+            currentPanelInputs.forEach(input => {
+                if (!input.checkValidity()) {
+                    input.reportValidity();
+                    valid = false;
+                }
+            });
+            
+            if(valid) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+    });
+
+    prevBtn.addEventListener("click", () => {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    // --- FORMSETS DINÁMICOS ---
+    window.addForm = function(containerId, prefix, emptyTemplateId) {
+        const container = document.getElementById(containerId);
+        const totalForms = document.querySelector(`#id_${prefix}-TOTAL_FORMS`);
+        
+        if (!totalForms) {
+            console.error(`No se encontró el input TOTAL_FORMS para el prefijo: ${prefix}`);
+            return;
+        }
+
+        const count = parseInt(totalForms.value);
+        const template = document.getElementById(emptyTemplateId).innerHTML;
+        
+        const newRow = template.replace(/__prefix__/g, count);
+        container.insertAdjacentHTML('beforeend', newRow);
+        
+        totalForms.value = count + 1;
+    };
+
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.delete-row-btn')) {
+            const row = e.target.closest('.form-row-dynamic');
+            const deleteInput = row.querySelector('input[name$="-DELETE"]');
+            
+            if (deleteInput) {
+                deleteInput.checked = true;
+                row.style.display = 'none';
+            } else {
+                row.remove();
+            }
+        }
+    });
+
+    // --- FILTRADO DINÁMICO DE SECTORES (AJAX) ---
+    const sectorSelect = document.querySelector('select[name="emp-sector"]');
+    const subsectorSelect = document.querySelector('select[name="emp-subsector"]');
+
+    if (sectorSelect && subsectorSelect) {
+        sectorSelect.addEventListener("change", function() {
+            const sectorId = this.value;
+            
+            // Limpiamos el combo de áreas
+            subsectorSelect.innerHTML = '<option value="">Cargando áreas...</option>';
+
+            if (!sectorId) {
+                subsectorSelect.innerHTML = '<option value="">-- Seleccione Secretaría primero --</option>';
+                return;
+            }
+
+            // Llamada al endpoint de AJAX
+            fetch(`/rrhh/ajax/get-subsectores/?sector_id=${sectorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    subsectorSelect.innerHTML = '<option value="">-- Seleccione Área --</option>';
+                    data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item.id;
+                        option.text = item.nombre;
+                        subsectorSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    subsectorSelect.innerHTML = '<option value="">Error al cargar áreas</option>';
+                });
+        });
+    }
+
+
+});
+</script>
+
+{% endblock %}

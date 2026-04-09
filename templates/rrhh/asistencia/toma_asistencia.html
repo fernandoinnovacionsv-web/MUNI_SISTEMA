@@ -1,0 +1,230 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Asistencia - {{ sector.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-xl-11">
+            <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                <form method="POST" enctype="multipart/form-data" id="formAsistencia">
+                    {% csrf_token %}
+                    <div class="card-header bg-primary py-3">
+                        <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-3">
+                            <!-- Título (Izquierda) -->
+                            <div class="d-flex align-items-center" style="min-width: 250px;">
+                                <h3 class="card-title fw-bold mb-0 text-white">
+                                    <i class="fas fa-clipboard-check mr-2"></i> ASISTENCIA: <span class="font-weight-normal text-white-50">{{ sector.nombre|upper }}</span>
+                                </h3>
+                            </div>
+                            
+                            <!-- Fecha (Centro - Automático) -->
+                            <div class="text-white font-weight-bold d-flex align-items-center justify-content-center flex-grow-1">
+                                <i class="far fa-calendar-alt mr-2"></i>
+                                <input type="date" name="fecha_registro" id="fecha_registro" class="form-control form-control-sm text-center fw-bold shadow-sm" value="{{ hoy|date:'Y-m-d' }}" style="max-width: 150px; border-radius: 8px;" onchange="recargarFecha(this.value)">
+                            </div>
+                            
+                            <!-- Botones (Derecha) -->
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{% url 'rrhh:exportar_asistencia_excel' sector.id %}" class="btn btn-success btn-sm fw-bold shadow-sm">
+                                    <i class="fas fa-file-excel mr-1"></i> EXCEL
+                                </a>
+                                <button type="button" class="btn btn-danger btn-sm fw-bold shadow-sm text-white" data-bs-toggle="modal" data-bs-target="#modalExportar">
+                                    <i class="fas fa-file-pdf mr-1"></i> PDF
+                                </button>
+                                <a href="{% url 'rrhh:registro_horas_extras' sector.id %}" class="btn btn-warning btn-sm fw-bold shadow-sm text-dark ms-2">
+                                    <i class="fas fa-clock mr-1"></i> HORAS EXTRAS
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="py-2 pl-4" style="width: 35%;">Empleado</th>
+                                        <th style="width: 15%;">Estado</th>
+                                        <th style="width: 40%;">Observaciones y Justificativos</th>
+                                        <th style="width: 10%; text-align: right; padding-right: 1.5rem;">Historial</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emp in personal %}
+                                    <tr>
+                                        <td class="pl-4 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm mr-3">{{ emp.apellido|first|upper }}</div>
+                                                <div>
+                                                    <span class="d-block fw-bold text-dark">{{ emp.apellido }}, {{ emp.nombre }}</span>
+                                                    <small class="text-muted">Legajo: {{ emp.legajo|default:"---" }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if emp.tiene_franco_hoy %}
+                                                <select name="estado_{{ emp.id }}" class="form-select form-select-sm border border-info shadow-sm fw-bold custom-select-compact rounded-pill px-3 bg-info text-white" readonly>
+                                                    <option value="FRANCO" selected>FRANCO</option>
+                                                </select>
+                                            {% elif emp.tiene_licencia_hoy %}
+                                                <div class="badge bg-danger text-white rounded-pill px-3 py-2 shadow-sm w-100" style="font-size: 0.8rem;">
+                                                    <i class="fas fa-user-md me-1"></i> LICENCIA MÉDICA
+                                                    <input type="hidden" name="estado_{{ emp.id }}" value="LICENCIA">
+                                                </div>
+                                            {% else %}
+                                                <select name="estado_{{ emp.id }}" class="form-select form-select-sm border border-secondary shadow-sm fw-bold custom-select-compact rounded-pill px-3" {% if mes_cerrado %}disabled{% endif %}>
+                                                    <option value="PRESENTE" {% if emp.estado_hoy == 'PRESENTE' or not emp.estado_hoy %}selected{% endif %}>Presente</option>
+                                                    <option value="AUSENTE_CON_AVISO" {% if emp.estado_hoy == 'AUSENTE_CON_AVISO' %}selected{% endif %}>Ausente c/A</option>
+                                                    <option value="AUSENTE_SIN_AVISO" {% if emp.estado_hoy == 'AUSENTE_SIN_AVISO' %}selected{% endif %}>Ausente s/A</option>
+                                                    <option value="TARDANZA" {% if emp.estado_hoy == 'TARDANZA' %}selected{% endif %}>Tardanza</option>
+                                                    <option value="FRANCO" {% if emp.estado_hoy == 'FRANCO' %}selected{% endif %}>Franco</option>
+                                                    <option value="SANCION" {% if emp.estado_hoy == 'SANCION' %}selected{% endif %}>Sanción</option>
+                                                </select>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <input type="text" name="motivo_{{ emp.id }}" 
+                                                       class="form-control form-control-sm border border-secondary shadow-sm rounded-pill px-3 mr-2" 
+                                                       placeholder="{% if emp.tiene_franco_hoy %}Día de Franco acumulado{% else %}Nota opcional...{% endif %}"
+                                                       {% if emp.tiene_franco_hoy %}readonly{% endif %}>
+                                                
+                                                {% if not emp.tiene_franco_hoy and not emp.tiene_licencia_hoy %}
+                                                <label class="btn btn-sm btn-outline-secondary rounded-circle mb-0 border shadow-sm btn-action-circle" title="Adjuntar">
+                                                    <i class="fas fa-paperclip"></i>
+                                                    <input type="file" name="adjunto_{{ emp.id }}" class="d-none">
+                                                </label>
+                                                {% elif emp.tiene_licencia_hoy %}
+                                                    <small class="text-danger fw-bold"><i class="fas fa-lock me-1"></i> Bloqueado por Licencia</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td style="text-align: right; padding-right: 1.5rem;">
+                                            <a href="{% url 'rrhh:historial_asistencia_empleado' emp.id %}" class="btn btn-sm btn-outline-info rounded-circle shadow-sm" title="Ver Historial">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white d-flex justify-content-between">
+                        <a href="{% url 'rrhh:dashboard_rrhh' %}" class="btn btn-link text-muted btn-sm">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-danger fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCerrarMes">
+                                <i class="fas fa-lock mr-2"></i> CERRAR MES
+                            </button>
+                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm" {% if mes_cerrado %}disabled{% endif %}>
+                                <i class="fas fa-save mr-2"></i> GUARDAR ASISTENCIA
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Exportar Asistencia -->
+<div class="modal fade" id="modalExportar" tabindex="-1" aria-labelledby="modalExportarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title fw-bold" id="modalExportarLabel">
+                    <i class="fas fa-file-export mr-2"></i> Exportar Asistencia
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'rrhh:exportar_asistencia_pdf' sector.id %}" method="GET" target="_blank">
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold text-muted small uppercase">Fecha Desde</label>
+                            <input type="date" name="fecha_desde" class="form-control border-secondary shadow-sm" required value="{{ hoy|date:'Y-m-01' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold text-muted small uppercase">Fecha Hasta</label>
+                            <input type="date" name="fecha_hasta" class="form-control border-secondary shadow-sm" required value="{{ hoy|date:'Y-m-d' }}">
+                        </div>
+                    </div>
+                    <div class="alert alert-light border-0 shadow-sm mb-0">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle text-info mr-1"></i> 
+                            Genera un reporte detallado con las asistencias, inasistencias y francos del personal de este sector para el área de Recursos Humanos.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-link text-muted fw-bold text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary text-white px-4 fw-bold shadow-sm">
+                        <i class="fas fa-file-pdf mr-1"></i> GENERAR PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cerrar Mes -->
+<div class="modal fade" id="modalCerrarMes" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header bg-danger text-white border-0 py-3">
+                <h5 class="modal-title fw-bold"><i class="fas fa-lock mr-2"></i> Cerrar Mes de Liquidación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'rrhh:cerrar_mes_asistencia' sector.id %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-center">
+                    {% if mes_a_cerrar_obj %}
+                        <div class="mb-4">
+                            <i class="fas fa-calendar-check text-danger" style="font-size: 3rem; opacity: 0.2;"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">¿Estás seguro de cerrar <span class="text-danger">{{ mes_a_cerrar_nombre }} {{ mes_a_cerrar_obj.year }}</span>?</h5>
+                        <p class="text-muted mt-2 px-3">
+                            Se bloquearán todos los registros de este sector para el periodo indicado. Esto permitirá que RRHH realice la liquidación final.
+                        </p>
+                        <input type="hidden" name="mes" value="{{ mes_a_cerrar_obj.month }}">
+                        <input type="hidden" name="anio" value="{{ mes_a_cerrar_obj.year }}">
+                    {% else %}
+                        <div class="py-4">
+                            <i class="fas fa-check-double text-success mb-3" style="font-size: 2.5rem;"></i>
+                            <p class="fw-bold text-muted">No existen periodos pendientes de cierre.</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-warning border-0 small mt-3 text-start">
+                        <i class="fas fa-info-circle mr-1"></i> <strong>Importante:</strong> Esta acción es irreversible para los jefes de área. Asegúrese de haber cargado todas las inasistencias y francos del mes.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 px-4 py-3">
+                    <button type="button" class="btn btn-link text-muted fw-bold text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                    {% if puedes_cerrar %}
+                        <button type="submit" class="btn btn-danger fw-bold px-4 rounded-pill shadow-sm">CONFIRMAR CIERRE</button>
+                    {% else %}
+                        <button type="button" class="btn btn-secondary disabled fw-bold px-4 rounded-pill shadow-sm">SIN PENDIENTES</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-sm { width: 35px; height: 35px; background: #e7f1ff; color: #007bff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #007bff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .custom-select-compact { width: 140px !important; font-size: 0.85rem; height: 32px !important; }
+    .btn-action-circle { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+    .table td { vertical-align: middle !important; }
+</style>
+<script>
+    function recargarFecha(fecha) {
+        window.location.href = "?fecha=" + fecha;
+    }
+</script>
+{% endblock %}

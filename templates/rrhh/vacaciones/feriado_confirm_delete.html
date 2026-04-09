@@ -1,0 +1,63 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Eliminar Feriado{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- ENCABEZADO -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="text-danger">
+                <i class="fas fa-trash-alt"></i> Eliminar Feriado
+            </h2>
+            <p class="text-muted">
+                Estás por eliminar el feriado seleccionado. Esta acción no se puede deshacer.
+            </p>
+        </div>
+
+        <div class="col-md-4 text-right">
+            <a href="{% url 'rrhh:feriados_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver al listado
+            </a>
+        </div>
+    </div>
+
+    <!-- CARD DE CONFIRMACIÓN -->
+    <div class="card shadow-sm border-danger">
+        <div class="card-body">
+
+            <h4 class="mb-3">
+                <strong>¿Confirmás que deseas eliminar este feriado?</strong>
+            </h4>
+
+            <ul class="list-group mb-4">
+                <li class="list-group-item">
+                    <strong>Nombre:</strong> {{ feriado.nombre }}
+                </li>
+                <li class="list-group-item">
+                    <strong>Fecha:</strong> {{ feriado.fecha|date:"d/m/Y" }}
+                </li>
+            </ul>
+
+            <!-- FORMULARIO -->
+            <form method="post">
+                {% csrf_token %}
+                
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Sí, eliminar definitivamente
+                </button>
+
+                <a href="{% url 'rrhh:feriados_list' %}" class="btn btn-outline-secondary ml-2">
+                    Cancelar
+                </a>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

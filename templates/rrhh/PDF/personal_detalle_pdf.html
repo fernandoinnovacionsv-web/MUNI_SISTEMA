@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Legajo Personal - {{ emp.apellido }}</title>
+    <style>
+        /* CONFIGURACIÓN GENERAL */
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        /* SISTEMA DE GRILLAS (COMPATIBLE CON PDFKIT) */
+        .row {
+            width: 100%;
+            display: block;
+            clear: both;
+            margin-bottom: 10px;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .col-50 {
+            width: 48%;
+            float: left;
+            margin-right: 2%;
+        }
+        .col-33 {
+            width: 31%;
+            float: left;
+            margin-right: 2%;
+        }
+        .col-100 {
+            width: 100%;
+            float: left;
+            clear: both;
+        }
+        .last { margin-right: 0; }
+
+        /* ENCABEZADO PRINCIPAL */
+        .header {
+            border-bottom: 2px solid #005CFF;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #003366;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .header-subtitle {
+            font-size: 10px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* SECCIONES */
+        .section-title {
+            background-color: #f0f4f8;
+            color: #003366;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 10px;
+            border-left: 5px solid #005CFF;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        /* CAMPOS DE DATOS */
+        .field-group {
+            margin-bottom: 8px;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+            font-size: 10px;
+            text-transform: uppercase;
+            display: block;
+        }
+        .value {
+            font-size: 12px;
+            color: #000;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 2px;
+            display: block;
+            min-height: 16px;
+        }
+
+        /* FOTO DE PERFIL */
+        .photo-container {
+            width: 130px;
+            height: 130px;
+            border: 1px solid #ddd;
+            padding: 3px;
+            background: #fff;
+            float: right;
+        }
+        .photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* TABLAS */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+        th {
+            background-color: #003366;
+            color: #fff;
+            text-align: left;
+            padding: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        td {
+            border-bottom: 1px solid #ddd;
+            padding: 6px;
+            color: #444;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* BADGES (Etiquetas pequeñas) */
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            background-color: #666;
+        }
+        .badge-active { background-color: #28a745; }
+        .badge-inactive { background-color: #dc3545; }
+
+        /* PIE DE PÁGINA */
+        .footer {
+            position: fixed;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 30px;
+            font-size: 9px;
+            text-align: center;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="float:left; width: 70%;">
+            <h1 class="header-title">Ficha de Personal</h1>
+            <div class="header-subtitle">Municipalidad de San Vicente - RRHH</div>
+        </div>
+        <div style="float:right; width: 30%; text-align: right;">
+            <div style="font-size: 10px; color: #999;">Generado el:</div>
+            <div style="font-weight: bold;">{% now "d/m/Y H:i" %}</div>
+        </div>
+        <div style="clear:both;"></div>
+    </div>
+
+    <div class="row">
+        <div style="width: 75%; float: left;">
+            
+            <div class="row">
+                <div class="col-50">
+                    <div class="field-group">
+                        <span class="label">Apellido y Nombre</span>
+                        <span class="value" style="font-size: 14px; font-weight: bold;">{{ emp.apellido }}, {{ emp.nombre }}</span>
+                    </div>
+                </div>
+                <div class="col-50 last">
+                    <div class="field-group">
+                        <span class="label">DNI</span>
+                        <span class="value">{{ emp.dni }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-33">
+                    <div class="field-group">
+                        <span class="label">Fecha Nacimiento</span>
+                        <span class="value">{{ emp.fecha_nacimiento|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+                <div class="col-33">
+                    <div class="field-group">
+                        <span class="label">Nacionalidad</span>
+                        <span class="value">{{ emp.nacionalidad|default:"-" }}</span>
+                    </div>
+                </div>
+                <div class="col-33 last">
+                    <div class="field-group">
+                        <span class="label">Estado Civil</span>
+                        <span class="value">{{ emp.get_estado_civil_display }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-100">
+                    <div class="field-group">
+                        <span class="label">Domicilio</span>
+                        <span class="value">{{ emp.calle }} {{ emp.numero }} - {{ emp.barrio }} ({{ emp.ciudad }})</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="width: 25%; float: right; text-align: right;">
+            <div class="photo-container">
+                {% if emp.foto %}
+                    <img src="file:///{{ emp.foto.path }}" class="photo-img">
+                {% else %}
+                    <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#ccc; background:#f0f0f0;">
+                        Sin Foto
+                    </div>
+                {% endif %}
+            </div>
+            <div style="margin-top: 5px; text-align: center; width: 130px; float: right;">
+                {% if emp.activo %}
+                    <span class="badge badge-active">ACTIVO</span>
+                {% else %}
+                    <span class="badge badge-inactive">BAJA</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">Información Laboral</div>
+    <div class="row">
+        <div class="col-33">
+            <div class="field-group">
+                <span class="label">Legajo</span>
+                <span class="value" style="font-weight: bold;">{{ emp.legajo }}</span>
+            </div>
+        </div>
+        <div class="col-33">
+            <div class="field-group">
+                <span class="label">Categoría</span>
+                <span class="value">{{ emp.categoria }}</span>
+            </div>
+        </div>
+        <div class="col-33 last">
+            <div class="field-group">
+                <span class="label">Condición</span>
+                <span class="value">{{ emp.get_condicion_display }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-50">
+            <div class="field-group">
+                <span class="label">Sector</span>
+                <span class="value">{{ emp.sector }}</span>
+            </div>
+        </div>
+        <div class="col-50 last">
+            <div class="field-group">
+                <span class="label">Subsector</span>
+                <span class="value">{{ emp.subsector }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-33">
+            <div class="field-group">
+                <span class="label">Inicio Actividad</span>
+                <span class="value">{{ emp.inicio_actividad|date:"d/m/Y" }}</span>
+            </div>
+        </div>
+        <div class="col-33">
+            <div class="field-group">
+                <span class="label">Turno</span>
+                <span class="value">{{ emp.get_turno_display }}</span>
+            </div>
+        </div>
+        <div class="col-33 last">
+            <div class="field-group">
+                <span class="label">Antigüedad</span>
+                <span class="value">{{ emp.antiguedad_anios }} años</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">Datos de Contacto</div>
+    <div class="row">
+        <div class="col-50">
+            <div class="field-group">
+                <span class="label">Celular / Teléfono</span>
+                <span class="value">{{ emp.celular }}</span>
+            </div>
+        </div>
+        <div class="col-50 last">
+            <div class="field-group">
+                <span class="label">Correo Electrónico</span>
+                <span class="value">{{ emp.correo|default:"-" }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-100">
+            <div class="field-group">
+                <span class="label">Contacto de Emergencia</span>
+                <span class="value">{{ emp.contacto_emergencia_nombre }} ({{ emp.contacto_emergencia_cel }})</span>
+            </div>
+        </div>
+    </div>
+
+    {% if conyuge or hijos %}
+    <div class="section-title">Grupo Familiar</div>
+    
+    {% if conyuge %}
+    <div class="row" style="margin-bottom: 10px;">
+        <div class="col-100">
+            <strong>Cónyuge:</strong> {{ conyuge.apellido }}, {{ conyuge.nombre }} (DNI: {{ conyuge.dni }})
+        </div>
+    </div>
+    {% endif %}
+
+    {% if hijos %}
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 40%">Hijo/a</th>
+                <th style="width: 30%">DNI</th>
+                <th style="width: 30%">Fecha Nacimiento</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in hijos %}
+            <tr>
+                <td>{{ h.apellido }}, {{ h.nombre }}</td>
+                <td>{{ h.dni }}</td>
+                <td>{{ h.fecha_nacimiento|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% endif %}
+
+    <div class="section-title" style="page-break-before: auto;">Historial de Movimientos (Últimos registros)</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 20%">Fecha</th>
+                <th style="width: 20%">Tipo</th>
+                <th style="width: 60%">Detalle</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in movimientos|slice:":15" %}
+            <tr>
+                <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <strong>{{ m.get_tipo_display }}</strong>
+                </td>
+                <td>{{ m.detalle }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align:center; color:#999;">Sin movimientos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Documento oficial generado por Sistema Municipal de Gestión · Pág. <span class="page"></span>
+    </div>
+
+</body>
+</html>

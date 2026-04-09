@@ -1,0 +1,217 @@
+{% extends 'base_adminlte.html' %}
+
+{% block title %}Estructura y Escalafón{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark m-0">🛠️ Configuración de Estructura Municipal</h2>
+            <p class="text-muted">Gestión de Secretarías, Áreas, Categorías y Condiciones de Revista.</p>
+        </div>
+        <a href="{% url 'rrhh:dashboard_rrhh' %}" class="btn btn-outline-secondary rounded-pill shadow-sm">
+            <i class="fas fa-arrow-left"></i> Volver al Panel
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0"><i class="fas fa-building me-2"></i> 1. Secretarías</h5>
+                    <input type="text" id="searchSector" class="form-control form-control-sm w-50" placeholder="Buscar secretaría...">
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'rrhh:sector_create' %}" class="input-group mb-4 shadow-sm">
+                        {% csrf_token %}
+                        <input type="text" name="nombre" class="form-control text-uppercase" placeholder="EJ: SECRETARÍA DE HACIENDA" required>
+                        <button class="btn btn-success" type="submit"><i class="fas fa-plus"></i></button>
+                    </form>
+
+                    <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                        <table class="table table-hover align-middle" id="tableSectores">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th class="text-center">Dependencias</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in sectores %}
+                                <tr>
+                                    <td class="fw-bold text-primary text-uppercase">{{ s.nombre }}</td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill bg-light text-dark border">{{ s.subsectores.count }} áreas</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm text-primary border-0" onclick="editarElemento('{{ s.id }}', '{{ s.nombre }}', 'sector')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm text-danger border-0"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-header bg-info text-white py-3 d-flex justify-content-between align-items-center" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0"><i class="fas fa-sitemap me-2"></i> 2. Áreas / Dependencias</h5>
+                    <input type="text" id="searchSubsector" class="form-control form-control-sm w-50" placeholder="Buscar área o secretaría...">
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'rrhh:subsector_create' %}" class="mb-4 shadow-sm p-3 bg-light rounded border">
+                        {% csrf_token %}
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="small fw-bold">Pertenece a:</label>
+                                <select name="padre_id" class="form-select" required>
+                                    <option value="">-- Seleccionar Secretaría --</option>
+                                    {% for s in sectores %}
+                                    <option value="{{ s.id }}">{{ s.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Nombre del Área:</label>
+                                <input type="text" name="nombre" class="form-control text-uppercase" placeholder="EJ: RECAUDACIONES" required>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button class="btn btn-success w-100" type="submit"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle" id="tableSubsectores">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Área / Subsector</th>
+                                    <th>Depende de (Secretaría)</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sub in subsectores %}
+                                <tr>
+                                    <td class="fw-medium text-uppercase">{{ sub.nombre }}</td>
+                                    <td><span class="badge bg-secondary text-uppercase">{{ sub.padre.nombre }}</span></td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm text-primary border-0" onclick="editarElemento('{{ sub.id }}', '{{ sub.nombre }}', 'sector')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm text-danger border-0"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-header bg-dark text-white py-3" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0"><i class="fas fa-tags me-2"></i> 3. Categorías / Escalafón</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'rrhh:categoria_create' %}" class="input-group mb-4 shadow-sm">
+                        {% csrf_token %}
+                        <input type="text" name="nombre" class="form-control text-uppercase" placeholder="EJ: CATEGORÍA 12" required>
+                        <button class="btn btn-success" type="submit"><i class="fas fa-plus"></i></button>
+                    </form>
+                    <div class="table-responsive" style="max-height: 250px;">
+                        <table class="table table-sm table-hover">
+                            <tbody>
+                                {% for cat in categorias %}
+                                <tr>
+                                    <td class="fw-bold">{{ cat.nombre }}</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm text-danger border-0"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="card-header bg-secondary text-white py-3" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0"><i class="fas fa-user-check me-2"></i> 4. Condición de Revista</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'rrhh:condicion_create' %}" class="input-group mb-4 shadow-sm">
+                        {% csrf_token %}
+                        <input type="text" name="nombre" class="form-control text-uppercase" placeholder="EJ: PLANTA PERMANENTE" required>
+                        <button class="btn btn-success" type="submit"><i class="fas fa-plus"></i></button>
+                    </form>
+                    <div class="table-responsive" style="max-height: 250px;">
+                        <table class="table table-sm table-hover">
+                            <tbody>
+                                {% for con in condiciones %}
+                                <tr>
+                                    <td class="fw-bold">{{ con.nombre }}</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm text-danger border-0"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="formEditar" method="POST" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="nombre" id="inputNuevoNombre">
+</form>
+
+<script>
+    // Función de Búsqueda
+    function setupSearch(inputId, tableId) {
+        const input = document.getElementById(inputId);
+        input.addEventListener('keyup', function() {
+            let filter = this.value.toUpperCase();
+            let rows = document.querySelector(`#${tableId} tbody`).rows;
+            for (let i = 0; i < rows.length; i++) {
+                rows[i].style.display = rows[i].innerText.toUpperCase().includes(filter) ? '' : 'none';
+            }
+        });
+    }
+
+    // Función de Edición
+    function editarElemento(id, nombreActual, tipo) {
+        let nuevo = prompt("Editar nombre:", nombreActual);
+        if (nuevo && nuevo.toUpperCase() !== nombreActual.toUpperCase()) {
+            let form = document.getElementById('formEditar');
+            // La URL apunta a rrhh/configuracion/sector/editar/ID/
+            form.action = `/rrhh/configuracion/sector/editar/${id}/`;
+            document.getElementById('inputNuevoNombre').value = nuevo;
+            form.submit();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupSearch('searchSector', 'tableSectores');
+        setupSearch('searchSubsector', 'tableSubsectores');
+    });
+</script>
+{% endblock %}

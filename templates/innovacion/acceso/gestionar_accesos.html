@@ -1,0 +1,314 @@
+{% extends 'innovacion/base_innovacion.html' %}
+
+{% block title %}Permisos: {{ usuario_afectado.get_full_name }} | Innovación{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* VARIABLES DE COLOR LOCALES PARA COHERENCIA */
+    :root {
+        --inn-purple-light: #f3e8ff;
+        --inn-purple: #6610f2;
+    }
+
+    /* 1. CHECKBOXES ESTILO MODERNO */
+    .form-check-input {
+        border: 2px solid #cbd5e1 !important;
+        width: 1.4rem !important;
+        height: 1.4rem !important;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--inn-purple) !important;
+        border-color: var(--inn-purple) !important;
+    }
+
+    /* 2. FILAS DE FUNCIONES */
+    .permiso-item {
+        border: 1px solid #e2e8f0 !important;
+        margin-bottom: 8px;
+        border-radius: 12px !important;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        cursor: pointer;
+    }
+
+    .permiso-item:hover {
+        background-color: #f8fafc !important;
+        transform: translateX(5px);
+    }
+
+    .permiso-item.selected {
+        background-color: var(--inn-purple-light) !important;
+        border-color: var(--inn-purple) !important;
+    }
+
+    .text-funcion {
+        color: #1e293b !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+        margin-left: 12px;
+    }
+
+    /* 3. TARJETAS DE SISTEMAS */
+    .card-sistema {
+        border-radius: 20px !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        overflow: hidden;
+    }
+
+    .card-header-inn {
+        background-color: #ffffff;
+        border-bottom: 2px solid var(--inn-purple-light);
+        padding: 18px;
+    }
+
+    /* 4. BOTONERA FIJA INFERIOR */
+    .sticky-save-bar {
+        position: sticky;
+        bottom: 1.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 15px 30px;
+        border: 1px solid #e2e8f0;
+        z-index: 1030;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border-radius: 50px;
+        margin-top: 2rem;
+    }
+
+    /* SWITCH ESTADO GENERAL */
+    .form-switch .form-check-input {
+        width: 3rem !important;
+        border-radius: 50px !important;
+    }
+    /* 5. PRESETS BUTTONS */
+    .preset-btn {
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-width: 2px;
+    }
+    .preset-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .preset-btn i {
+        transition: all 0.3s ease;
+    }
+    .preset-btn:hover i {
+        transform: scale(1.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-dark m-0">
+                <i class="fas fa-shield-halved me-2" style="color: var(--inn-purple);"></i> Configuración de Permisos
+            </h2>
+            <p class="text-muted mb-0">
+                Usuario: <span class="fw-bold text-dark">{{ usuario_afectado.get_full_name|upper }}</span> 
+                <span class="badge rounded-pill ms-2" style="background: #e2e8f0; color: #475569;">DNI: {{ usuario_afectado.username }}</span>
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'innovacion:usuarios_activos' %}" class="btn btn-link text-muted text-decoration-none fw-bold">
+                <i class="fas fa-chevron-left me-1"></i> Cancelar y Volver
+            </a>
+        </div>
+    </div>
+
+    <form method="POST" id="form-permisos">
+        {% csrf_token %}
+        
+        <div class="card mb-4 card-sistema bg-white">
+            <div class="card-body d-flex align-items-center justify-content-between py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background: var(--inn-purple-light);">
+                        <i class="fas fa-power-off" style="color: var(--inn-purple);"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold">Estado de Acceso General</h5>
+                        <p class="text-muted small mb-0">Determina si el usuario puede ingresar al ecosistema de la Municipalidad.</p>
+                    </div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="esta_activo" name="esta_activo" 
+                           {% if perfil.esta_activo %}checked{% endif %}>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE PERFILES PREDETERMINADOS -->
+        <div class="card mb-4 card-sistema bg-white shadow-sm border-0">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3 d-flex align-items-center">
+                    <i class="fas fa-users-gear me-2 text-primary"></i> Perfiles Predeterminados (Presets)
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-primary w-100 py-3 rounded-4 preset-btn" onclick="applyPreset('rrhh_total')">
+                            <i class="fas fa-user-shield mb-2 d-block fs-4"></i>
+                            <strong>Control Total RRHH</strong>
+                            <span class="d-block small opacity-75">Todas las funciones administrativas</span>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-info w-100 py-3 rounded-4 preset-btn" onclick="applyPreset('rrhh_jefe')">
+                            <i class="fas fa-user-tie mb-2 d-block fs-4"></i>
+                            <strong>Jefe de Sector</strong>
+                            <span class="d-block small opacity-75">Toma asistencia y carga extras</span>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="button-staff btn btn-outline-secondary w-100 py-3 rounded-4 preset-btn" onclick="applyPreset('rrhh_personal')">
+                            <i class="fas fa-user mb-2 d-block fs-4"></i>
+                            <strong>Personal / Empleado</strong>
+                            <span class="d-block small opacity-75">Solicitudes básicas y consultas</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-info-circle me-1"></i> Al seleccionar un perfil se marcarán las funciones recomendadas, pero puedes personalizarlas debajo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for sistema in sistemas %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 card-sistema bg-white">
+                    <div class="card-header-inn d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold d-flex align-items-center">
+                            <i class="{{ sistema.icono|default:'fas fa-laptop-code' }} me-2" style="color: var(--inn-purple);"></i>
+                            {{ sistema.nombre }}
+                        </h6>
+                        <button type="button" class="btn btn-sm rounded-pill select-all-btn px-3 fw-bold" 
+                                style="font-size: 0.7rem; background: var(--inn-purple-light); color: var(--inn-purple);"
+                                data-target="{{ sistema.id }}">
+                            <span>TODO</span>
+                        </button>
+                    </div>
+                    <div class="card-body p-3">
+                        {% for funcion in sistema.funciones.all %}
+                        <div class="permiso-item {% if funcion.id in funciones_usuario %}selected{% endif %}" onclick="toggleCheck('fun_{{ funcion.id }}')">
+                            <input class="form-check-input check-permiso" type="checkbox" 
+                                   name="funciones_seleccionadas" 
+                                   value="{{ funcion.id }}" 
+                                   id="fun_{{ funcion.id }}"
+                                   data-codigo="{{ funcion.codigo_interno }}"
+                                   {% if funcion.id in funciones_usuario %}checked{% endif %}
+                                   onclick="event.stopPropagation()">
+                            <label class="flex-grow-1 m-0" for="fun_{{ funcion.id }}" style="cursor:pointer;">
+                                <span class="text-funcion">{{ funcion.nombre_visible }}</span>
+                            </label>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-info-circle text-muted mb-2"></i>
+                            <p class="text-muted small mb-0">No hay funciones configuradas.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="sticky-save-bar d-flex justify-content-between align-items-center">
+            <div class="text-muted d-none d-md-block">
+                <i class="fas fa-info-circle me-1"></i> Los cambios se aplicarán al instante tras guardar.
+            </div>
+            <button type="submit" class="btn btn-lg px-5 shadow fw-bold rounded-pill text-white"
+                    style="background: var(--inn-purple);">
+                <i class="fas fa-cloud-upload-alt me-2"></i> ACTUALIZAR PERMISOS
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // PERFILES DEFINIDOS
+    const profiles = {
+        'rrhh_total': [
+            'rrhh_ver_personal', 'rrhh_detalle_personal', 'rrhh_crear_personal', 'rrhh_editar_personal',
+            'rrhh_baja_personal', 'rrhh_exportar_excel', 'rrhh_ver_movimientos', 'rrhh_crear_movimiento',
+            'rrhh_pedir_vacacion', 'rrhh_aval_jefe', 'rrhh_admin_vacacion', 'rrhh_ver_vac_todas',
+            'rrhh_admin_feriados', 'rrhh_ver_indumentaria', 'rrhh_admin_stock', 'rrhh_config_general',
+            'rrhh_tomar_asistencia', 'rrhh_entregar_ropa', 'rrhh_carga_inicial_licencias',
+            'rrhh_control_total_licencias', 'rrhh_cargar_licencia', 'rrhh_aprobar_licencia',
+            'rrhh_cargar_hs_extras', 'rrhh_cierre_mes', 'rrhh_liquidacion_hs_extras',
+            'rrhh_reporte_hs_extras', 'rrhh_descargar_liquidaciones', 'rrhh_descargar_asistencia',
+            'acceso_innovacion_admin', 'innovacion_ver_solicitudes'
+        ],
+        'rrhh_jefe': [
+            'rrhh_ver_personal', 'rrhh_tomar_asistencia', 'rrhh_cargar_hs_extras',
+            'rrhh_pedir_vacacion', 'rrhh_aval_jefe', 'rrhh_cargar_licencia',
+            'rrhh_reporte_hs_extras', 'rrhh_descargar_asistencia'
+        ],
+        'rrhh_personal': [
+            'rrhh_pedir_vacacion', 'rrhh_cargar_licencia'
+        ]
+    };
+
+    function applyPreset(profileKey) {
+        const selectedCodes = profiles[profileKey] || [];
+        const checkboxes = document.querySelectorAll('.check-permiso');
+        
+        checkboxes.forEach(cb => {
+            const code = cb.getAttribute('data-codigo');
+            const shouldBeChecked = selectedCodes.includes(code);
+            
+            cb.checked = shouldBeChecked;
+            const item = cb.closest('.permiso-item');
+            if (item) {
+                shouldBeChecked ? item.classList.add('selected') : item.classList.remove('selected');
+            }
+        });
+
+        // Feedback visual en botones (opcional)
+        document.querySelectorAll('.preset-btn').forEach(btn => btn.blur());
+    }
+
+    // Función para marcar/desmarcar al hacer clic en cualquier parte de la fila
+    function toggleCheck(id) {
+        const check = document.getElementById(id);
+        check.checked = !check.checked;
+        const item = check.closest('.permiso-item');
+        check.checked ? item.classList.add('selected') : item.classList.remove('selected');
+    }
+
+    // Manejo visual de los checks individuales
+    document.querySelectorAll('.check-permiso').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const item = this.closest('.permiso-item');
+            this.checked ? item.classList.add('selected') : item.classList.remove('selected');
+        });
+    });
+
+    // Botón "Seleccionar Todo" de cada tarjeta
+    document.querySelectorAll('.select-all-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const card = this.closest('.card');
+            const checks = card.querySelectorAll('.check-permiso');
+            const allChecked = Array.from(checks).every(c => c.checked);
+            
+            checks.forEach(c => {
+                c.checked = !allChecked;
+                const item = c.closest('.permiso-item');
+                !allChecked ? item.classList.add('selected') : item.classList.remove('selected');
+            });
+            
+            this.querySelector('span').textContent = allChecked ? 'TODO' : 'NINGUNO';
+        });
+    });
+</script>
+{% endblock %}

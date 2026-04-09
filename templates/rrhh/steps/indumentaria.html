@@ -1,0 +1,62 @@
+<h5 class="section-title">Talles de Indumentaria</h5>
+<p class="text-muted small mb-3">Registre los talles de ropa y calzado para el empleado.</p>
+
+{{ indumentaria_formset.management_form }}
+
+<div id="indumentaria-container">
+
+    {% for form in indumentaria_formset %}
+    <div class="form-inline-box form-row-dynamic mb-3 p-3 border rounded bg-white">
+        
+        {{ form.id }}
+        
+        <div class="row align-items-end">
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-bold">Tipo de Prenda</label>
+                {{ form.tipo_prenda }}
+            </div>
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-bold">Talle</label>
+                {{ form.talle }}
+            </div>
+            
+            {% if form.DELETE %}
+            <div class="col-md-2 text-end">
+                <div class="d-none">{{ form.DELETE }}</div>
+                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<div id="empty-form-indum" class="d-none">
+    <div class="form-inline-box form-row-dynamic mb-3 p-3 border rounded bg-white">
+        
+        {{ indumentaria_formset.empty_form.id }}
+        
+        <div class="row align-items-end">
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-bold">Tipo de Prenda</label>
+                {{ indumentaria_formset.empty_form.tipo_prenda }}
+            </div>
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-bold">Talle</label>
+                {{ indumentaria_formset.empty_form.talle }}
+            </div>
+            <div class="col-md-2 text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="btn btn-outline-primary btn-sm mt-2 fw-bold" onclick="addForm('indumentaria-container', 'indum', 'empty-form-indum')">
+    <i class="fas fa-plus-circle me-1"></i> Agregar prenda
+</button>

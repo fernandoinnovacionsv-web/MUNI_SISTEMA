@@ -1,0 +1,52 @@
+{% extends 'base_adminlte.html' %}
+{% block title %}Importar Stock{% endblock %}
+
+{% block content %}
+<div class="card card-outline card-warning">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-file-import me-2"></i> Importación Masiva</h3>
+    </div>
+    <div class="card-body">
+        
+        <div class="alert alert-info">
+            <h5><i class="icon fas fa-info"></i> Instrucciones</h5>
+            Suba un archivo Excel (.xlsx) o CSV con las columnas: <b>prenda, talle, cantidad</b>.
+            <br>
+            <a href="{% url 'rrhh:indumentaria_stock_plantilla' %}" class="btn btn-sm btn-outline-light mt-2 text-dark border-dark">
+                <i class="fas fa-download"></i> Descargar Plantilla Modelo
+            </a>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="p-4 border rounded bg-light">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label fw-bold">Seleccionar Archivo</label>
+                <input type="file" name="archivo" class="form-control" required>
+            </div>
+            <button class="btn btn-warning w-100 fw-bold">Procesar Archivo</button>
+        </form>
+
+        {% if summary %}
+            <div class="mt-4">
+                <h5>Resultado:</h5>
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-success">Nuevos: {{ summary.inserted }}</li>
+                    <li class="list-group-item list-group-item-warning">Actualizados: {{ summary.updated }}</li>
+                    <li class="list-group-item list-group-item-danger">Errores: {{ summary.invalid }}</li>
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if errors %}
+            <div class="mt-3">
+                <h6 class="text-danger">Detalle de Errores:</h6>
+                <ul class="small text-danger">
+                    {% for e in errors %}
+                        <li>Fila {{ e.row }}: {{ e.reason }} ({{ e.value }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

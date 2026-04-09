@@ -1,0 +1,20 @@
+{% extends "base_adminlte.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <h4 class="mb-3">Bienvenido al Sistema de Gestión Municipal</h4>
+    <div class="card">
+      <div class="card-body">
+        <p>Usá el menú superior para navegar por las secciones del sistema.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    {% include "home.html" %}
+  </div>
+</div>
+{% endblock %}

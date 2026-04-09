@@ -1,0 +1,256 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Acceso al Sistema · Municipalidad de San Vicente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-color: #005CFF; /* Azul Institucional */
+      --secondary-color: #0045c7;
+      --accent-color: #0ea5e9;
+    }
+
+    body, html {
+      height: 100%;
+      font-family: 'Montserrat', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* LAYOUT DE PANTALLA PARTIDA */
+    .login-container {
+      height: 100vh;
+      display: flex;
+    }
+
+    /* SECCIÓN IZQUIERDA (IMAGEN/BRANDING) */
+    .login-brand-section {
+      flex: 1;
+      /* Usando la foto del edificio municipal proporcionada por el usuario con un overlay oscuro tenue */
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.5)), 
+                  url('{% static "img/edifio_muni.jpg.jpeg" %}'); 
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      padding: 3rem;
+      position: relative;
+    }
+
+    /* Ocultar sección izquierda en móviles */
+    @media (max-width: 992px) {
+      .login-brand-section {
+        display: none;
+      }
+    }
+
+    .brand-content h1 {
+      font-weight: 800;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .brand-content p {
+      font-size: 1.2rem;
+      font-weight: 300;
+      opacity: 0.9;
+    }
+
+    /* SECCIÓN DERECHA (FORMULARIO) */
+    .login-form-section {
+      flex: 0 0 500px; /* Ancho fijo para el formulario */
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      flex-direction: column;
+      position: relative;
+    }
+
+    @media (max-width: 992px) {
+      .login-form-section {
+        flex: 1;
+        width: 100%;
+      }
+    }
+
+    /* ESTILOS DEL FORMULARIO */
+    .login-wrapper {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .logo-mobile {
+      max-height: 60px;
+      margin-bottom: 2rem;
+    }
+
+    .form-title {
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+      color: #6c757d;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    /* Inputs flotantes modernos */
+    .form-floating > .form-control {
+      border-radius: 10px;
+      border: 1px solid #dee2e6;
+      background-color: #f8f9fa;
+    }
+    
+    .form-floating > .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 4px rgba(0, 92, 255, 0.1);
+      background-color: #fff;
+    }
+
+    /* Botón */
+    .btn-login {
+      background: var(--primary-color);
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .btn-login:hover {
+      background: var(--secondary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 92, 255, 0.3);
+    }
+
+    /* Footer */
+    .footer-text {
+      margin-top: 3rem;
+      font-size: 0.75rem;
+      color: #adb5bd;
+      text-align: center;
+    }
+
+    /* ALERTAS */
+    .custom-alert {
+      border-radius: 10px;
+      border: none;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    
+    <div class="login-brand-section">
+      <div class="brand-content">
+        <h1></h1>
+        <p>Sistema de Gestión Municipal Integral</p>
+        <div style="width: 60px; height: 4px; background: white; margin: 20px auto; border-radius: 2px;"></div>
+        <p class="small">Modernización e Innovación</p>
+      </div>
+    </div>
+
+    <div class="login-form-section">
+      
+      <div class="login-wrapper">
+        <div class="text-center">
+            <img src="{% static 'img/logo_muni_1.png' %}" alt="Logo" class="logo-mobile" onerror="this.style.display='none'">
+        </div>
+
+        <h3 class="form-title">Bienvenido</h3>
+        <p class="form-subtitle">Ingresá tus credenciales para acceder al panel.</p>
+
+        {% if messages %}
+          {% for message in messages %}
+             {% if message.level >= 25 %} 
+              <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} custom-alert alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          
+          <div class="form-floating mb-3">
+            <input type="text" name="username" class="form-control form-control-modern" id="floatingInput" placeholder="Usuario" required autofocus>
+            <label for="floatingInput"><i class="fas fa-user me-1 text-muted"></i> Usuario</label>
+          </div>
+          
+          <div class="form-floating mb-4">
+            <input type="password" name="password" class="form-control form-control-modern" id="floatingPassword" placeholder="Contraseña" required>
+            <label for="floatingPassword"><i class="fas fa-lock me-1 text-muted"></i> Contraseña</label>
+          </div>
+
+          <button class="btn btn-primary w-100 btn-login" type="submit">
+            Ingresar al Sistema
+          </button>
+        </form>
+
+        <div class="footer-text mt-4">
+          <p class="mb-1"><strong>Municipalidad de San Vicente</strong></p>
+          <p class="mb-1">Secretaría de Innovación Tecnológica &copy; {% now "Y" %}</p>
+          <p class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">v{{ APP_VERSION|default:"1.0.0" }}</p>
+        </div>
+
+      </div>
+      <!-- Fin de la Tarjeta Blanca -->
+    </div>
+
+  </div>
+
+  <style>
+    /* Estilos adicionales que extienden los existentes para lograr el efecto de tarjeta */
+    .login-form-section {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important; /* Fondo exterior oscuro */
+      padding: 2rem !important;
+    }
+    
+    .login-wrapper {
+      background-color: #ffffff; /* Tarjeta interior blanca */
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      max-width: 420px;
+      width: 100%;
+    }
+
+    .form-control-modern {
+      background-color: #f8fafc !important;
+      border: 2px solid transparent !important;
+    }
+    
+    .form-control-modern:focus {
+      background-color: #ffffff !important;
+      border-color: var(--primary-color) !important;
+      box-shadow: 0 0 0 4px rgba(0, 92, 255, 0.1) !important;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

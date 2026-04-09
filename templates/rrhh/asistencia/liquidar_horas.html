@@ -1,0 +1,138 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Liquidación de Horas - {{ sector.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-11">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="{% url 'rrhh:registro_horas_extras' sector.id %}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-arrow-left mr-2"></i> Volver a Gestión
+                </a>
+                <div class="bg-white rounded-pill shadow-sm px-4 py-2 text-success font-weight-bold">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i> LIQUIDACIÓN MENSUAL
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="card shadow-lg border-0" style="border-radius: 12px; overflow: hidden;">
+                    <div class="card-header bg-success text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="card-title fw-bold mb-0">
+                                <i class="fas fa-calculator mr-2"></i> Liquidar Saldo de Horas
+                            </h3>
+                            <div class="d-flex align-items-center">
+                                <span class="mr-2 small uppercase font-weight-bold">Período:</span>
+                                <input type="text" name="periodo" class="form-control form-control-sm text-center font-weight-bold" value="{{ hoy|date:'m/Y' }}" style="width: 100px; border-radius: 8px; border: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-dark">
+                                    <tr>
+                                        <th class="py-3 pl-4" style="width: 30%;">Empleado</th>
+                                        <th class="text-center" style="width: 20%;">Saldo Total (Historico)</th>
+                                        <th class="text-center" style="width: 25%;">Reservar para FRANCO</th>
+                                        <th class="text-center text-success fw-bold" style="width: 25%;">A LIQUIDAR (PAGO)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emp in personal %}
+                                    <tr class="emp-row">
+                                        <td class="pl-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm mr-3 bg-success-light text-success fw-bold">{{ emp.apellido|first }}</div>
+                                                <div>
+                                                    <span class="d-block fw-bold text-dark">{{ emp.apellido }}, {{ emp.nombre }}</span>
+                                                    <small class="text-muted">Legajo: {{ emp.legajo }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="h5 mb-0 fw-bold text-dark">
+                                                <span id="total_{{ emp.id }}">{{ emp.total_balance|floatformat:1 }}</span> hs
+                                            </div>
+                                            <div class="small text-muted">Acomulado hasta hoy</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <input type="number" step="0.5" min="0" max="{{ emp.total_balance }}" 
+                                                       name="franco_{{ emp.id }}" id="franco_{{ emp.id }}"
+                                                       class="form-control text-center fw-bold franco-input shadow-sm" 
+                                                       value="0" 
+                                                       style="width: 100px; border-radius: 8px; border: 2px solid #dee2e6;"
+                                                       data-emp-id="{{ emp.id }}"
+                                                       oninput="calcularLiquidacion({{ emp.id }}, {{ emp.total_balance }})">
+                                                <span class="ml-2 font-weight-bold">hs</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center bg-light">
+                                            <div class="h4 mb-0 fw-bold text-success">
+                                                <span id="liquidar_{{ emp.id }}">{{ emp.total_balance|floatformat:1 }}</span> hs
+                                            </div>
+                                            <small class="text-muted font-italic">Prioridad: 200% &rarr; 150% &rarr; 100%</small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white p-4">
+                        <div class="alert alert-warning border-0 shadow-sm mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-circle fa-2x mr-3"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Información sobre la Liquidación</h6>
+                                    <p class="mb-0 small">
+                                        Al confirmar, las horas <strong>A Liquidar</strong> serán removidas del banco bajo el concepto de <strong>PAGO</strong> (consumiendo primero las horas al 200%). 
+                                        La diferencia reservada para <strong>FRANCO</strong> se descontará bajo el concepto de reserva para uso posterior (consumiendo primero horas al 100%).
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary px-5 mr-3 rounded-pill fw-bold" onclick="window.history.back()">CANCELAR</button>
+                            <button type="submit" class="btn btn-success px-5 rounded-pill fw-bold shadow-sm">
+                                <i class="fas fa-check-double mr-2"></i> CONFIRMAR LIQUIDACIÓN Y CIERRE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-sm { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+    .bg-success-light { background-color: #e8f5e9; }
+    .franco-input:focus { border-color: #28a745 !important; box-shadow: 0 0 0 0.2rem rgba(40,167,69,.15) !important; }
+    .emp-row:hover { background-color: #f1f8e9 !important; }
+</style>
+
+<script>
+    function calcularLiquidacion(empId, total) {
+        let francoInput = document.getElementById('franco_' + empId);
+        let liquidarSpan = document.getElementById('liquidar_' + empId);
+        
+        let francoVal = parseFloat(francoInput.value) || 0;
+        
+        // No permitir más franco que el total
+        if (francoVal > total) {
+            francoVal = total;
+            francoInput.value = total;
+        }
+        
+        let aLiquidar = total - francoVal;
+        liquidarSpan.innerText = aLiquidar.toFixed(1);
+    }
+</script>
+{% endblock %}

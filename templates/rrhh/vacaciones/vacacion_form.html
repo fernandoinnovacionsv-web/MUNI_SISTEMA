@@ -1,0 +1,258 @@
+{% extends "base_adminlte.html" %}
+{% load static %}
+{% block title %}Asignar vacaciones{% endblock %}
+
+{% block content %}
+{% comment %} Si no hay empleado seleccionado, mostramos buscador/listado. {% endcomment %}
+{% if not empleado %}
+<div class="card mb-3 shadow-sm" style="border-radius: 15px;">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
+    style="border-radius: 15px 15px 0 0;">
+    <h5 class="mb-0"><i class="fas fa-search me-2"></i> Seleccionar empleado para asignar vacaciones</h5>
+    <a href="{% url 'rrhh:vacaciones_list' %}" class="btn btn-light btn-sm shadow-sm">Volver</a>
+  </div>
+  <div class="card-body">
+    <form method="get" class="row g-2 mb-3">
+      <div class="col-md-8">
+        <input type="text" name="q" value="{{ q }}" class="form-control rounded-pill"
+          placeholder="Legajo / DNI / Apellido / Nombre">
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="anio" value="{{ anio }}" class="form-control rounded-pill" min="2000" max="2100">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100 rounded-pill">Buscar</button>
+      </div>
+    </form>
+
+    {% if empleados %}
+    <div class="table-responsive">
+      <table class="table table-hover table-sm align-middle">
+        <thead class="table-light text-center">
+          <tr>
+            <th>Legajo</th>
+            <th>DNI</th>
+            <th>Apellido</th>
+            <th>Nombre</th>
+            <th>Antig.</th>
+            <th class="col-min">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in empleados %}
+          <tr>
+            <td class="text-center fw-bold">{{ e.legajo }}</td>
+            <td>{{ e.dni }}</td>
+            <td>{{ e.apellido }}</td>
+            <td>{{ e.nombre }}</td>
+            <td class="text-center">{{ e.antiguedad_anios }} años</td>
+            <td class="text-center">
+              <a class="btn btn-sm btn-primary rounded-pill px-3" href="?empleado={{ e.id }}&anio={{ anio }}">
+                <i class="fas fa-user-check"></i> Seleccionar
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-4">
+      <i class="fas fa-user-slash fa-3x text-muted mb-2"></i>
+      <p class="text-muted">No se encontraron empleados con ese criterio.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow" style="border-radius: 15px;">
+      <div class="card-header bg-white">
+        <strong><i class="fas fa-calendar-alt text-primary"></i> Asignar vacaciones</strong> · {{ empleado.apellido }},
+        {{ empleado.nombre }}
+      </div>
+      <div class="card-body">
+        <div class="row g-3 mb-2 text-center">
+          <div class="col-12 col-md-4">
+            <div class="alert alert-info mb-0 border-0 shadow-sm">
+              <div class="small text-uppercase text-muted">Año</div>
+              <div class="h4 fw-bold">{{ anio }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="alert alert-success mb-0 border-0 shadow-sm">
+              <div class="small text-uppercase text-muted">Corresponde</div>
+              <div class="h4 fw-bold">{{ corresponde }} días</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="alert alert-warning mb-0 border-0 shadow-sm">
+              <div class="small text-uppercase text-muted">Saldo actual</div>
+              <div class="h4 fw-bold text-dark" id="saldoLabel" data-saldo="{{ saldo }}">{{ saldo }} días</div>
+            </div>
+          </div>
+        </div>
+
+        <form method="post" class="mt-4" id="formVacaciones" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <input type="hidden" name="empleado" value="{{ empleado.id }}">
+          <input type="hidden" name="anio" value="{{ anio }}">
+          <input type="hidden" name="dias_habiles" id="id_dias_habiles" value="0">
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Fecha inicio</label>
+              {{ form.fecha_inicio }}
+              {% for e in form.fecha_inicio.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Fecha fin</label>
+              {{ form.fecha_fin }}
+              {% for e in form.fecha_fin.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">Adjuntar Nota/Solicitud (Opcional)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-file-pdf"></i></span>
+                {{ form.adjunto_solicitud }}
+              </div>
+              <div class="form-text">Puede subir un PDF o imagen del pedido firmado.</div>
+              {% for e in form.adjunto_solicitud.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12 mt-3">
+              <label class="form-label fw-bold">Observaciones</label>
+              {{ form.observaciones }}
+            </div>
+          </div>
+
+          <div class="mt-4 d-flex justify-content-between align-items-center bg-light p-3 rounded border">
+            <div class="h5 mb-0 text-primary">
+              <span id="previewDias" class="badge bg-light text-dark border border-secondary shadow-sm px-3 py-2"
+                style="font-size: 1.1rem;">0</span>
+              <span class="text-muted ms-1">día(s) hábil(es) seleccionados</span>
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{% url 'rrhh:vacaciones_list' %}"
+                class="btn btn-outline-secondary rounded-pill px-4 me-2">Cancelar</a>
+              <button class="btn btn-success rounded-pill px-4 shadow" type="submit" id="btnGuardar">
+                <i class="fas fa-save me-1"></i> GUARDAR
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {% if movimientos %}
+    <div class="card mt-3 shadow-sm" style="border-radius: 12px;">
+      <div class="card-header bg-light"><strong><i class="fas fa-history"></i> Otros movimientos del año {{ anio
+          }}</strong></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Inicio</th>
+                <th>Fin</th>
+                <th>Días</th>
+                <th>Obs.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in movimientos %}
+              <tr>
+                <td class="ps-3">{{ v.fecha_inicio|date:"d/m/Y" }}</td>
+                <td>{{ v.fecha_fin|date:"d/m/Y" }}</td>
+                <td class="fw-bold">{{ v.dias_habiles }}</td>
+                <td class="text-truncate text-muted" style="max-width:300px">{{ v.observaciones|default:"-" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="card shadow-sm" style="border-radius: 15px;">
+      <div class="card-header bg-white"><strong><i class="fas fa-info-circle text-info"></i> Resumen de Saldo</strong>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between">
+            <span>Derecho anual</span> <span
+              class="badge bg-light text-dark border border-secondary shadow-sm rounded-pill px-3">{{ corresponde }}
+              días</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <span>Días ya utilizados</span> <span
+              class="badge bg-light text-dark border border-warning shadow-sm rounded-pill px-3">{{ usados }}
+              días</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between bg-light">
+            <span class="fw-bold">Saldo remanente</span> <strong class="text-success">{{ saldo }} días</strong>
+          </li>
+        </ul>
+        <div class="alert alert-light border mt-3 mb-0 small text-muted">
+          <i class="fas fa-calculator me-1"></i> El sistema descuenta sábados, domingos y feriados nacionales cargados.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  // Referencias a los elementos
+  const fi = document.querySelector('input[name="fecha_inicio"]');
+  const ff = document.querySelector('input[name="fecha_fin"]');
+  const out = document.getElementById('previewDias');
+  const hiddenDias = document.getElementById('id_dias_habiles');
+  const holidays = {{ holidays_json| safe }};
+
+  function refreshDays() {
+    if (!fi.value || !ff.value) {
+      out.textContent = "0";
+      hiddenDias.value = "0";
+      return;
+    }
+
+    const start = new Date(fi.value + 'T00:00:00');
+    const end = new Date(ff.value + 'T00:00:00');
+
+    if (isNaN(start) || isNaN(end) || start > end) {
+      out.textContent = "0";
+      hiddenDias.value = "0";
+      return;
+    }
+
+    let count = 0;
+    let cur = new Date(start);
+    while (cur <= end) {
+      const day = cur.getDay(); // 0=Dom, 6=Sab
+      const dateStr = cur.toISOString().split('T')[0];
+      // Si no es domingo (0), ni sábado (6), ni está en la lista de feriados
+      if (day !== 0 && day !== 6 && !holidays.includes(dateStr)) {
+        count++;
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    // Actualizamos tanto la vista como el campo que se enviará a Django
+    out.textContent = count;
+    hiddenDias.value = count;
+  }
+
+  // Escuchar cambios en las fechas
+  if (fi && ff) {
+    fi.addEventListener('change', refreshDays);
+    ff.addEventListener('change', refreshDays);
+    // Ejecutar al inicio por si ya hay datos
+    document.addEventListener('DOMContentLoaded', refreshDays);
+  }
+</script>
+{% endblock %}

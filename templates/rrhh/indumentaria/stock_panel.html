@@ -1,0 +1,71 @@
+{% extends "base_adminlte.html" %}
+{% load static %}
+
+{% block title %}Gestión de Stock{% endblock %}
+
+{% block content %}
+
+<div class="card card-outline card-warning shadow-sm" style="min-height: 80vh;">
+
+    <div class="card-header">
+        <h3 class="card-title font-weight-bold text-dark">
+            <i class="fas fa-boxes me-2 text-warning"></i> Gestión de Stock de Indumentaria
+        </h3>
+        <div class="card-tools">
+            <a href="{% url 'rrhh:indumentaria_list' %}" class="btn btn-sm btn-default border">
+                <i class="fas fa-arrow-left"></i> Volver al Listado
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body bg-light d-flex align-items-center justify-content-center">
+        
+        <div class="container">
+            <div class="row justify-content-center">
+                
+                <div class="col-12 text-center mb-5">
+                    <h4 class="text-muted">¿Qué operación desea realizar?</h4>
+                </div>
+
+                <div class="col-md-5 col-lg-4 mb-4">
+                    <div class="card h-100 shadow hover-card border-top-0">
+                        <div class="card-header bg-info text-white text-center py-3">
+                            <h4 class="m-0 font-weight-bold">Individual</h4>
+                        </div>
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-tshirt fa-5x text-info mb-4"></i>
+                            <p class="card-text text-muted">Carga manual de prendas pieza por pieza.</p>
+                            <a href="{% url 'rrhh:indumentaria_stock_add' %}" class="btn btn-info btn-block btn-lg rounded-pill shadow-sm">
+                                <i class="fas fa-plus-circle me-2"></i> Ingresar Stock
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5 col-lg-4 mb-4">
+                    <div class="card h-100 shadow hover-card border-top-0">
+                        <div class="card-header bg-warning text-dark text-center py-3">
+                            <h4 class="m-0 font-weight-bold">Masiva</h4>
+                        </div>
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-file-excel fa-5x text-warning mb-4"></i>
+                            <p class="card-text text-muted">Importación rápida desde Excel o CSV.</p>
+                            <a href="{% url 'rrhh:indumentaria_stock_import' %}" class="btn btn-warning btn-block btn-lg rounded-pill shadow-sm text-dark">
+                                <i class="fas fa-upload me-2"></i> Subir Archivo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .hover-card { transition: transform 0.3s ease; }
+    .hover-card:hover { transform: translateY(-5px); }
+</style>
+
+{% endblock %}

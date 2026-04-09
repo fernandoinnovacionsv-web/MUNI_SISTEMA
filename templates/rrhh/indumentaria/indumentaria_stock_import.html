@@ -1,0 +1,110 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Importar Stock{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header">
+                <h3 class="card-title font-weight-bold">
+                    <i class="fas fa-file-upload me-2 text-primary"></i> Importar Stock Masivo
+                </h3>
+                <div class="card-tools">
+                    <a href="{% url 'rrhh:indumentaria_stock_panel' %}" class="btn btn-tool" title="Volver">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-body">
+                
+                <div class="callout callout-info mb-4">
+                    <h5><i class="fas fa-info-circle"></i> Instrucciones</h5>
+                    <p class="text-muted small mb-2">
+                        Utilice esta función para actualizar el stock rápidamente. Asegúrese de que su archivo Excel (.xlsx) o CSV respete el formato de la plantilla.
+                    </p>
+                    <a href="{% url 'rrhh:indumentaria_stock_template' %}" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-download me-1"></i> Descargar Plantilla Modelo
+                    </a>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="p-4 border rounded bg-light">
+                    {% csrf_token %}
+                    
+                    <div class="form-group mb-4">
+                        <label for="id_archivo" class="form-label fw-bold">Seleccionar Archivo</label>
+                        <input type="file" name="archivo" id="id_archivo" class="form-control" required accept=".csv, .xlsx, .xls">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-lg">
+                            <i class="fas fa-cloud-upload-alt me-2"></i> Procesar Importación
+                        </button>
+                    </div>
+                </form>
+
+                {% if summary %}
+                <div class="mt-4">
+                    <h5 class="border-bottom pb-2">Resultado de la importación</h5>
+                    <div class="row text-center mt-3">
+                        <div class="col-4">
+                            <div class="alert alert-success">
+                                <h3 class="mb-0">{{ summary.inserted }}</h3>
+                                <small>Nuevos</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="alert alert-warning">
+                                <h3 class="mb-0">{{ summary.updated }}</h3>
+                                <small>Actualizados</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="alert alert-danger">
+                                <h3 class="mb-0">{{ summary.invalid }}</h3>
+                                <small>Errores</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if errors %}
+                <div class="card border-danger mt-3">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="card-title"><i class="fas fa-exclamation-triangle me-2"></i> Errores Detectados</h3>
+                    </div>
+                    <div class="card-body p-0 table-responsive" style="max-height: 300px;">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Fila</th>
+                                    <th>Motivo</th>
+                                    <th>Valor Dato</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in errors %}
+                                    <tr>
+                                        <td class="text-center fw-bold">{{ e.row }}</td>
+                                        <td>{{ e.reason }}</td>
+                                        <td class="text-muted fst-italic">{{ e.value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

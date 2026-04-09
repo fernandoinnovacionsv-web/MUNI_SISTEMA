@@ -1,0 +1,347 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Perfil: {{ emp.apellido }}{% endblock %}
+
+{% block content %}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #005CFF 0%, #00c6ff 100%);
+    }
+
+    /* --- PORTADA Y PERFIL --- */
+    .profile-cover {
+        background: var(--primary-gradient);
+        height: 160px;
+        border-radius: 15px 15px 0 0;
+    }
+    
+    .profile-header-container {
+        margin-top: -80px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 5px solid #fff;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        object-fit: cover;
+        background-color: #f8f9fa;
+    }
+
+    /* --- SIDEBAR DE DATOS RÁPIDOS --- */
+    .quick-info-card {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    .info-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    .info-item:last-child { border-bottom: none; }
+
+    /* --- PESTAÑAS Y CONTENIDO --- */
+    .nav-tabs-modern {
+        border-bottom: 2px solid #f1f3f5;
+        gap: 10px;
+    }
+
+    .nav-tabs-modern .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 600;
+        padding: 12px 20px;
+        border-radius: 8px 8px 0 0;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .nav-tabs-modern .nav-link.active {
+        color: #005CFF;
+        background: transparent;
+    }
+
+    .nav-tabs-modern .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: #005CFF;
+        border-radius: 3px;
+    }
+
+    /* --- TALLES ICONOS --- */
+    .talle-icon-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s;
+        border: 1px solid transparent;
+    }
+    .talle-icon-card:hover {
+        background: #fff;
+        border-color: #005CFF;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div class="container-fluid pb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'rrhh:personal_list' %}" class="btn btn-white rounded-pill px-4 shadow-sm border">
+            <i class="fas fa-arrow-left me-2 text-primary"></i> Volver al Listado
+        </a>
+        <div class="btn-group shadow-sm rounded-pill">
+            <a href="{% url 'rrhh:personal_edit' emp.pk %}" class="btn btn-primary px-4">
+                <i class="fas fa-edit me-2"></i> Editar
+            </a>
+            <a href="{% url 'rrhh:personal_detalle_pdf' emp.pk %}" class="btn btn-outline-danger px-4 bg-white">
+                <i class="fas fa-file-pdf me-2"></i> Exportar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 col-xl-3">
+            <div class="card quick-info-card overflow-hidden mb-4">
+                <div class="profile-cover"></div>
+                <div class="profile-header-container">
+                    {% if emp.foto %}
+                        <img src="{{ emp.foto.url }}" class="profile-avatar">
+                    {% else %}
+                        <div class="profile-avatar d-flex align-items-center justify-content-center bg-light text-muted display-4 mx-auto">
+                            {{ emp.nombre|first }}{{ emp.apellido|first }}
+                        </div>
+                    {% endif %}
+                    <h4 class="mt-3 fw-bold mb-0">{{ emp.nombre }} {{ emp.apellido }}</h4>
+                    <span class="badge {% if emp.activo %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                        {% if emp.activo %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </div>
+
+                <div class="card-body pt-0">
+                    <div class="info-item">
+                        <label class="small text-muted d-block text-uppercase fw-bold">Legajo</label>
+                        <span class="fw-bold text-primary">#{{ emp.legajo }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label class="small text-muted d-block text-uppercase fw-bold">Condición Actual</label>
+                        <span class="badge bg-info text-dark">
+                            {{ emp.get_condicion_display|default:emp.condicion|default:"No asignado" }}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <label class="small text-muted d-block text-uppercase fw-bold">Sector / Área</label>
+                        <span>{{ emp.sector|default:"Sin sector" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label class="small text-muted d-block text-uppercase fw-bold">Contacto Directo</label>
+                        <i class="fas fa-phone-alt me-2 text-muted"></i>{{ emp.celular|default:"Sin número" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 col-xl-9">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 pt-3 px-4">
+                    <ul class="nav nav-tabs-modern" id="profileTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-target="#content-datos">
+                                <i class="far fa-user-circle me-1"></i> Perfil
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-target="#content-laboral">
+                                <i class="fas fa-briefcase me-1"></i> Laboral
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-target="#content-familia">
+                                <i class="fas fa-users-cog me-1"></i> Familia
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-target="#content-indumentaria">
+                                <i class="fas fa-tshirt me-1"></i> Talles
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-target="#content-historial">
+                                <i class="fas fa-history me-1"></i> Movimientos
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="tab-content">
+                        
+                        <div class="tab-pane fade show active" id="content-datos">
+                            <h5 class="fw-bold mb-4">Información Personal</h5>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold">DNI / Documento</label>
+                                    <p class="fs-5 fw-bold">{{ emp.dni }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold">Nacionalidad</label>
+                                    <p class="fs-5">{{ emp.nacionalidad|default:"Argentina" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold">Fecha de Nacimiento</label>
+                                    <p class="fs-5">{{ emp.fecha_nacimiento|date:"d M, Y" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold">Domicilio</label>
+                                    <p class="fs-5">{{ emp.calle }} {{ emp.numero }}, {{ emp.ciudad }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-laboral">
+                            <div class="row">
+                                <div class="col-md-6 border-end">
+                                    <h5 class="fw-bold mb-3 text-primary">Contrato y Situación</h5>
+                                    <div class="mb-4">
+                                        <label class="text-muted small fw-bold d-block">Condición de Revista</label>
+                                        <p class="fs-5 fw-bold text-primary">
+                                            {{ emp.get_condicion_display|default:emp.condicion|default:"SIN ASIGNAR" }}
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="text-muted small fw-bold">Categoría / Cargo</label>
+                                        <p class="fs-6">{{ emp.categoria|default:"No especificada" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 ps-md-4 text-center text-md-start">
+                                    <h5 class="fw-bold mb-3 text-success">Antigüedad</h5>
+                                    <div class="display-4 fw-bold mb-0">{{ emp.antiguedad_anios }}</div>
+                                    <p class="text-muted">Años de servicio cumplidos</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-familia">
+                             <div class="row g-4">
+                                <div class="col-md-5">
+                                    <div class="p-3 border rounded-3 bg-light">
+                                        <h6 class="text-uppercase small fw-bold text-muted mb-3">Cónyuge</h6>
+                                        {% if conyuge %}
+                                            <h5 class="fw-bold mb-1">{{ conyuge.apellido }}, {{ conyuge.nombre }}</h5>
+                                            <p class="text-muted mb-0">DNI: {{ conyuge.dni }}</p>
+                                        {% else %}
+                                            <span class="text-muted fst-italic">No registrado</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <h6 class="text-uppercase small fw-bold text-muted mb-3">Hijos Cargados ({{ hijos|length }})</h6>
+                                    <ul class="list-group list-group-flush">
+                                        {% for h in hijos %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <div>
+                                                <div class="fw-bold">{{ h.nombre }} {{ h.apellido }}</div>
+                                                <small class="text-muted">DNI: {{ h.dni }}</small>
+                                            </div>
+                                            <span class="badge bg-light text-dark border">{{ h.fecha_nacimiento|date:"d/m/Y" }}</span>
+                                        </li>
+                                        {% empty %}
+                                            <li class="list-group-item text-muted small">No se registran hijos.</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                             </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-indumentaria">
+                            <div class="row g-3">
+                                {% for t in emp.talles.all %}
+                                <div class="col-md-4">
+                                    <div class="talle-icon-card d-flex align-items-center">
+                                        <div class="flex-shrink-0 bg-white shadow-sm rounded-circle p-3 text-primary">
+                                            {% if 'ZAPATO' in t.tipo_prenda.upper or 'CALZADO' in t.tipo_prenda.upper %}
+                                                <i class="fas fa-shoe-prints fa-lg"></i>
+                                            {% elif 'CAMISA' in t.tipo_prenda.upper or 'CHOMBA' in t.tipo_prenda.upper %}
+                                                <i class="fas fa-tshirt fa-lg"></i>
+                                            {% else %}
+                                                <i class="fas fa-user-tag fa-lg"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ms-3">
+                                            <div class="small text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">{{ t.tipo_prenda }}</div>
+                                            <div class="fs-4 fw-bold">{{ t.talle }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12 text-center py-4">
+                                    <p class="text-muted">No hay talles registrados.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-historial">
+                            <div class="timeline-modern mt-3">
+                                {% for m in movimientos %}
+                                <div class="timeline-item history-row mb-3">
+                                    <div class="bg-light p-3 rounded-3 border-start border-4 {% if m.tipo == 'SANCION' %}border-danger{% elif m.tipo == 'ALTA' %}border-success{% else %}border-primary{% endif %}">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="fw-bold mb-1">{{ m.tipo }}</h6>
+                                            <span class="text-muted small fw-bold">{{ m.fecha|date:"d M Y" }}</span>
+                                        </div>
+                                        <p class="mb-0 text-secondary small">{{ m.detalle }}</p>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-history fa-3x text-light mb-3"></i>
+                                    <p class="text-muted">No hay movimientos registrados.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const tabs = document.querySelectorAll('#profileTabs .nav-link');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('data-target');
+            
+            // Limpiar activos en links
+            tabs.forEach(t => t.classList.remove('active'));
+            // Limpiar activos en contenidos
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+
+            // Activar actual
+            this.classList.add('active');
+            const targetPane = document.querySelector(targetId);
+            if(targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

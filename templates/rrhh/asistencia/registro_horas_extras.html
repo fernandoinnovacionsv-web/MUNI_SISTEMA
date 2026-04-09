@@ -1,0 +1,384 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Horas Extras - {{ sector.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <!-- Menú Superior Opcional -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="{% url 'rrhh:toma_asistencia' %}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-arrow-left mr-2"></i> Volver a Asistencia
+                </a>
+                <div>
+                    <!-- Botón Liquidar -->
+                    <a href="{% url 'rrhh:liquidar_horas' sector.id %}" class="btn btn-success rounded-pill px-4 shadow-sm mr-2 font-weight-bold">
+                        <i class="fas fa-dollar-sign mr-2"></i> Liquidación de Mes
+                    </a>
+                    <!-- Botón Exportar PDF abre Modal -->
+                    <button type="button" class="btn btn-danger rounded-pill px-4 shadow-sm mr-2 font-weight-bold" data-bs-toggle="modal" data-bs-target="#modalExportarPDF">
+                        <i class="fas fa-file-pdf mr-2"></i> Reporte Horas
+                    </button>
+                    <!-- Botón Exportar Liquidación PDF abre Modal -->
+                    <button type="button" class="btn btn-dark rounded-pill px-4 shadow-sm mr-2 font-weight-bold" data-bs-toggle="modal" data-bs-target="#modalExportarLiquidacionPDF">
+                        <i class="fas fa-file-invoice-dollar mr-2"></i> PDF Liquidación
+                    </button>
+                    <div class="bg-white rounded-pill shadow-sm px-4 py-2 text-primary font-weight-bold d-inline-flex align-items-center">
+                        <i class="far fa-calendar-alt mr-2 text-muted"></i> 
+                        {{ hoy|date:"d" }} de {{ mes_actual|lower }} de {{ hoy|date:"Y" }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-lg border-0" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-header bg-warning border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h3 class="card-title fw-bold text-dark mb-0">
+                            <i class="fas fa-clock mr-2"></i> Gestión de Horas Extras
+                        </h3>
+                        
+                        <div class="flex-grow-1 mx-md-4" style="max-width: 450px;">
+                            <div class="search-container shadow-sm">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="searchInput" class="search-input" 
+                                       placeholder="Buscar por Nombre, Legajo o DNI..." 
+                                       onkeyup="filterTable()">
+                            </div>
+                        </div>
+
+                        <span class="badge badge-light shadow-sm text-dark px-3 py-2">
+                            Sector: {{ sector.nombre }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 custom-table" id="tablaAsistencia">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="py-3 pl-4 border-0 text-dark" style="width: 25%;">Empleado / Legajo</th>
+                                    <th class="border-0 text-center text-dark" style="width: 15%;">L-V (100%)</th>
+                                    <th class="border-0 text-center text-dark" style="width: 15%;">Sábados</th>
+                                    <th class="border-0 text-center text-dark" style="width: 15%;">Dom/Fer (200%)</th>
+                                    <th class="border-0 text-right pr-4 text-dark" style="width: 25%;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for emp in personal %}
+                                <tr class="emp-row" data-search="{{ emp.apellido|lower }} {{ emp.nombre|lower }} {{ emp.legajo }} {{ emp.dni }}">
+                                    <td class="pl-4 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-lg mr-3 bg-gradient-primary text-white shadow-sm font-weight-bold">
+                                                {{ emp.apellido|first|upper }}
+                                            </div>
+                                            <div>
+                                                <span class="d-block fw-bold text-dark h6 mb-1">{{ emp.apellido }}, {{ emp.nombre }}</span>
+                                                <div class="d-flex align-items-center mt-1">
+                                                    <small class="badge badge-dark shadow-xs" style="background-color: #343a40 !important; color: #ffffff !important; font-weight: 700; padding: 0.25rem 0.6rem;">Leg: {{ emp.legajo|default:"---" }}</small>
+                                                    <span class="mx-3 text-muted" style="font-weight: 100;">|</span>
+                                                    <small class="text-dark font-weight-bold"><i class="fas fa-id-card mr-1 text-primary"></i> DNI: {{ emp.dni }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    <td class="text-center align-middle">
+                                        {% if emp.rem_lv > 0 %}
+                                            <span class="text-success font-weight-bold border rounded px-2">{{ emp.rem_lv|floatformat:1 }} hs</span>
+                                        {% else %}
+                                            <span class="text-muted">0 hs</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-center align-middle">
+                                        {% if emp.rem_sab > 0 %}
+                                            <span class="text-warning font-weight-bold border rounded px-2">{{ emp.rem_sab|floatformat:1 }} hs</span>
+                                        {% else %}
+                                            <span class="text-muted">0 hs</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-center align-middle">
+                                        {% if emp.rem_dom > 0 %}
+                                            <span class="text-danger font-weight-bold border rounded px-2">{{ emp.rem_dom|floatformat:1 }} hs</span>
+                                        {% else %}
+                                            <span class="text-muted">0 hs</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-right align-middle pr-4">
+                                        <div class="btn-group shadow-sm rounded-pill overflow-hidden border">
+                                            <button class="btn btn-primary btn-sm px-3" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalHoraExtra_{{ emp.id }}" title="Cargar Horas Extras">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm px-3 text-white" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalFranco_{{ emp.id }}" title="Cargar Franco Tomado">
+                                                <i class="fas fa-user-clock"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- MODAL DE CARGA HORAS EXTRAS -->
+                                <div class="modal fade" id="modalHoraExtra_{{ emp.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                                            <div class="modal-header bg-primary text-white border-0 py-3">
+                                                <h5 class="modal-title font-weight-bold">HORAS EXTRAS: {{ emp.get_short_name }}</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="POST">
+                                                {% csrf_token %}
+                                                <div class="modal-body p-4">
+                                                    <input type="hidden" name="empleado_id" value="{{ emp.id }}">
+                                                    <div class="form-group mb-3">
+                                                        <label class="font-weight-bold text-muted small text-uppercase">Fecha Actividad</label>
+                                                        <input type="date" name="fecha" class="form-control form-control-solid" value="{{ hoy|date:'Y-m-d' }}" required>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-group mb-3">
+                                                                <label class="font-weight-bold text-muted small text-uppercase">Inicio</label>
+                                                                <input type="time" name="hora_inicio" class="form-control form-control-solid" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-group mb-3">
+                                                                <label class="font-weight-bold text-muted small text-uppercase">Fin</label>
+                                                                <input type="time" name="hora_fin" class="form-control form-control-solid" required>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group mb-0">
+                                                        <label class="font-weight-bold text-muted small text-uppercase">Detalle</label>
+                                                        <textarea name="detalle" class="form-control form-control-solid" rows="2" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer bg-light border-0 py-3">
+                                                    <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">GUARDAR</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- MODAL DE CARGA FRANCO -->
+                                <div class="modal fade" id="modalFranco_{{ emp.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                                            <div class="modal-header bg-info text-white border-0 py-3">
+                                                <h5 class="modal-title font-weight-bold">PROGRAMAR FRANCO: {{ emp.get_short_name }}</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="POST" action="{% url 'rrhh:programar_franco' emp.id %}">
+                                                {% csrf_token %}
+                                                <div class="modal-body p-4">
+                                                    <div class="alert alert-info py-2 small border-0 shadow-sm mb-4">
+                                                        <i class="fas fa-info-circle mr-1"></i> Esta acción descontará automáticamente <strong>6.0 horas</strong> por cada día hábil programado y bloqueará la asistencia del rango elegido.
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-group mb-3">
+                                                                <label class="font-weight-bold text-muted small text-uppercase">Desde</label>
+                                                                <input type="date" name="fecha_inicio" class="form-control form-control-solid" value="{{ hoy|date:'Y-m-d' }}" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-group mb-3">
+                                                                <label class="font-weight-bold text-muted small text-uppercase">Hasta (Opcional)</label>
+                                                                <input type="date" name="fecha_hasta" class="form-control form-control-solid">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group mb-0">
+                                                        <label class="font-weight-bold text-muted small text-uppercase">Motivo / Detalle</label>
+                                                        <textarea name="detalle" class="form-control form-control-solid" rows="2">Día de Franco acumulado</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer bg-light border-0 py-3">
+                                                    <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-info text-white rounded-pill px-4 fw-bold shadow-sm">CARGAR FRANCO</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- MODAL DE REGISTRO PAGO -->
+                                <div class="modal fade" id="modalPago_{{ emp.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                                            <div class="modal-header bg-success text-white border-0 py-3">
+                                                <h5 class="modal-title font-weight-bold">REGISTRAR PAGO: {{ emp.get_short_name }}</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="POST" action="{% url 'rrhh:registrar_pago_horas' emp.id %}">
+                                                {% csrf_token %}
+                                                <div class="modal-body p-4">
+                                                    <div class="form-group mb-3">
+                                                        <label class="font-weight-bold text-muted small text-uppercase">Cantidad de Horas a Pagar</label>
+                                                        <input type="number" step="0.01" name="cantidad_horas" class="form-control form-control-solid form-control-lg text-center fw-bold" placeholder="0.00" required>
+                                                    </div>
+                                                    <div class="form-group mb-3">
+                                                        <label class="font-weight-bold text-muted small text-uppercase">Fecha de Pago/Cierre</label>
+                                                        <input type="date" name="fecha" class="form-control form-control-solid" value="{{ hoy|date:'Y-m-d' }}" required>
+                                                    </div>
+                                                    <div class="form-group mb-0">
+                                                        <label class="font-weight-bold text-muted small text-uppercase">Detalle</label>
+                                                        <textarea name="detalle" class="form-control form-control-solid" rows="2">Pago de horas extras realizadas</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer bg-light border-0 py-3">
+                                                    <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">REGISTRAR PAGO</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <div class="display-4 text-light mb-3"><i class="fas fa-users-slash"></i></div>
+                                        <h5>No se encontró personal activo en este sector.</h5>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MODAL DE EXPORTACIÓN PDF CON RANGO DE FECHAS -->
+            <div class="modal fade" id="modalExportarPDF" tabindex="-1" aria-labelledby="modalExportarPDFLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                        <div class="modal-header bg-danger text-white border-0 py-3">
+                            <h5 class="modal-title font-weight-bold" id="modalExportarPDFLabel">
+                                <i class="fas fa-file-pdf mr-2"></i> Exportar Horas Extras
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        
+                        <form method="GET" action="{% url 'rrhh:exportar_horas_extras_pdf' sector.id %}" target="_blank">
+                            <div class="modal-body p-4">
+                                <p class="text-muted small mb-4">
+                                    Seleccione el rango de fechas que desea incluir en el reporte de horas extras para el sector <strong>{{ sector.nombre }}</strong>.
+                                </p>
+                                
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-bold text-muted small text-uppercase">Fecha Desde</label>
+                                            <input type="date" name="fecha_desde" class="form-control form-control-solid rounded-lg border border-secondary" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-bold text-muted small text-uppercase">Fecha Hasta</label>
+                                            <input type="date" name="fecha_hasta" class="form-control form-control-solid rounded-lg border border-secondary" value="{{ hoy|date:'Y-m-d' }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="modal-footer bg-light border-0 d-flex justify-content-between py-3">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-danger rounded-pill px-4 font-weight-bold shadow-sm" onclick="setTimeout(function(){$('#modalExportarPDF').modal('hide');},1000);">
+                                    <i class="fas fa-download mr-1"></i> Generar Reporte
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL DE EXPORTACIÓN PDF LIQUIDACIÓN -->
+            <div class="modal fade" id="modalExportarLiquidacionPDF" tabindex="-1" aria-labelledby="modalExportarLiquidacionPDFLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                        <div class="modal-header bg-dark text-white border-0 py-3">
+                            <h5 class="modal-title font-weight-bold" id="modalExportarLiquidacionPDFLabel">
+                                <i class="fas fa-file-invoice-dollar mr-2"></i> Exportar PDF de Liquidación
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        
+                        <form method="GET" action="{% url 'rrhh:exportar_liquidaciones_pdf' sector.id %}" target="_blank">
+                            <div class="modal-body p-4">
+                                <div class="alert alert-dark small py-2 border-0 mb-4">
+                                    <i class="fas fa-info-circle mr-1"></i> Este reporte incluye únicamente las horas que ya han sido <strong>liquidadas (pagadas)</strong> en el rango seleccionado.
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-bold text-muted small text-uppercase">Fecha Desde</label>
+                                            <input type="date" name="fecha_desde" class="form-control form-control-solid rounded-lg border border-secondary" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-bold text-muted small text-uppercase">Fecha Hasta</label>
+                                            <input type="date" name="fecha_hasta" class="form-control form-control-solid rounded-lg border border-secondary" value="{{ hoy|date:'Y-m-d' }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="modal-footer bg-light border-0 d-flex justify-content-between py-3">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-dark rounded-pill px-4 font-weight-bold shadow-sm" onclick="setTimeout(function(){$('#modalExportarLiquidacionPDF').modal('hide');},1000);">
+                                    <i class="fas fa-download mr-1"></i> Generar Reporte
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let rows = document.querySelectorAll("#tablaAsistencia .emp-row");
+        
+        rows.forEach(row => {
+            let text = row.getAttribute("data-search");
+            if (text.includes(input)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+</script>
+<style>
+    /* Estética Mejorada */
+    .search-container { position: relative; background: #fff; border-radius: 50px; overflow: hidden; height: 40px; display: flex; align-items: center; border: 1px solid rgba(0,0,0,0.08); }
+    .search-icon { position: absolute; left: 15px; color: #94a3b8; font-size: 0.9rem; }
+    .search-input { width: 100%; border: none; padding: 10px 15px 10px 40px; font-size: 0.95rem; outline: none; background: transparent; height: 100%; }
+    .search-input::placeholder { color: #94a3b8; opacity: 0.8; }
+    
+    .avatar-lg { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; }
+    .bg-gradient-primary { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); }
+    .custom-table tbody tr { transition: all 0.2s ease; border-bottom: 1px solid rgba(0,0,0,.05); }
+    .custom-table tbody tr:hover { background-color: #f8f9fc; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,.08); z-index: 10; position: relative; }
+    .bg-primary-light { background-color: #e7f1ff; }
+    .bg-danger-light { background-color: #ffeef0; }
+    .form-control-solid { background-color: #f5f6f8; border: 1px solid #ddd; border-radius: 10px; transition: all 0.3s; }
+    .form-control-solid:focus { background-color: #fff; border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.15); }
+    .shadow-xs { box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+</style>
+{% endblock %}block %}

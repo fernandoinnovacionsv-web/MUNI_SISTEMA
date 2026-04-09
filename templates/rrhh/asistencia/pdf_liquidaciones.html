@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Liquidación - Hacienda</title>
+    <style>
+        /* Informe Profesional para Hacienda */
+        @page { 
+            size: A4; 
+            margin: 15mm; 
+        }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            font-size: 10pt; 
+            color: #1e293b; 
+            margin: 0; 
+            padding: 0; 
+            line-height: 1.5;
+        }
+
+        .header {
+            border-bottom: 2pt solid #0f172a;
+            padding-bottom: 15pt;
+            margin-bottom: 25pt;
+            display: table;
+            width: 100%;
+        }
+        .header-logo {
+            display: table-cell;
+            vertical-align: middle;
+            width: 70pt;
+        }
+        .header-text {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+            padding-right: 70pt; /* Compensar el logo para centrar texto */
+        }
+        
+        .logo { width: 60pt; height: auto; }
+        .muni-name { font-size: 16pt; font-weight: 800; color: #0f172a; text-transform: uppercase; margin: 0; line-height: 1.2; }
+        .dept-name { font-size: 10pt; font-weight: 600; color: #475569; text-transform: uppercase; margin: 2pt 0; }
+        .report-title { font-size: 13pt; font-weight: 700; color: #1e40af; margin-top: 6pt; text-transform: uppercase; }
+
+        .report-meta {
+            background: #f1f5f9;
+            padding: 12pt 20pt;
+            border-radius: 6pt;
+            margin-bottom: 30pt;
+            display: table;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .meta-col { display: table-cell; width: 33.33%; }
+        .meta-label { font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; }
+        .meta-value { font-size: 10pt; font-weight: 600; color: #0f172a; }
+
+        /* Agente Section - Optimized for totals as requested */
+        .agente-container {
+            page-break-inside: avoid;
+            margin-bottom: 30pt;
+            border: 1pt solid #cbd5e1;
+            border-radius: 8pt;
+            overflow: hidden;
+        }
+        
+        .agente-header {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 10pt 15pt;
+            display: table;
+            width: 100%;
+        }
+        .agente-info { display: table-cell; vertical-align: middle; }
+        .agente-name { font-size: 12pt; font-weight: 700; text-transform: uppercase; }
+        .agente-ids { font-size: 8.5pt; color: #94a3b8; font-weight: 400; }
+        
+        .agente-total {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: right;
+            width: 120pt;
+        }
+        .total-label { font-size: 7.5pt; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: -2pt; }
+        .total-value { font-size: 16pt; font-weight: 800; color: #38bdf8; }
+
+        /* Summary Grid (3 Columns) */
+        .summary-grid {
+            display: table;
+            width: 100%;
+            border-top: 1pt solid #cbd5e1;
+            background: #ffffff;
+        }
+        .summary-col {
+            display: table-cell;
+            width: 33.33%;
+            padding: 15pt 10pt;
+            text-align: center;
+            border-right: 1pt solid #f1f5f9;
+        }
+        .summary-col:last-child { border-right: none; }
+        
+        .cat-label { font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5pt; }
+        .cat-value { font-size: 15pt; font-weight: 800; display: block; }
+        
+        .val-lv { color: #334155; }
+        .val-s { color: #b45309; }
+        .val-df { color: #b91c1c; }
+
+        .cat-detail { font-size: 7pt; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-top: 2pt; }
+
+        /* Bottom Signatures */
+        .signatures {
+            margin-top: 50pt;
+            display: table;
+            width: 100%;
+        }
+        .sig-box { display: table-cell; width: 33.33%; text-align: center; vertical-align: bottom; }
+        .sig-line { 
+            border-top: 1pt solid #0f172a; 
+            width: 80%; 
+            margin: 0 auto 5pt auto; 
+            padding-top: 4pt;
+            font-size: 8.5pt;
+            font-weight: 700;
+        }
+        .sig-title { font-size: 7.5pt; color: #64748b; }
+
+        .footer {
+            position: fixed;
+            bottom: 40pt;
+            width: 100%;
+            text-align: center;
+            font-size: 7.5pt;
+            color: #94a3b8;
+            border-top: 0.5pt solid #e2e8f0;
+            padding-top: 10pt;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-logo">
+            <img src="file:///D:/MUNI_SISTEMA/static/img/logo_muni_1.png" class="logo">
+        </div>
+        <div class="header-text">
+            <div class="muni-name">Municipalidad de San Vicente</div>
+            <div class="dept-name">Dirección de Recursos Humanos</div>
+            <div class="report-title">Informe Técnico de Liquidación de Horas Extras</div>
+        </div>
+    </div>
+
+    <div class="report-meta">
+        <div class="meta-col">
+            <span class="meta-label">Dependencia / Sector</span>
+            <span class="meta-value">{{ sector.nombre }}</span>
+        </div>
+        <div class="meta-col">
+            <span class="meta-label">Periodo Correspondiente</span>
+            <span class="meta-value">{{ fecha_desde|date:"d/m/Y" }} — {{ fecha_hasta|date:"d/m/Y" }}</span>
+        </div>
+        <div class="meta-col" style="text-align: right;">
+            <span class="meta-label">Fecha de Generación</span>
+            <span class="meta-value">{{ hoy|date:"d/m/Y" }}</span>
+        </div>
+    </div>
+
+    {% for item in data_reporte %}
+    <div class="agente-container">
+        <div class="agente-header">
+            <div class="agente-info">
+                <div class="agente-name">{{ item.agente.apellido }}, {{ item.agente.nombre }}</div>
+                <div class="agente-ids">LEGAJO: {{ item.agente.legajo|default:"----" }} &nbsp;|&nbsp; DNI: {{ item.agente.dni|default:"--------" }}</div>
+            </div>
+            <div class="agente-total">
+                <span class="total-label">Subtotal a Liquidar</span>
+                <span class="total-value">{{ item.total_pagado|stringformat:".1f" }} HS</span>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-col">
+                <span class="cat-label">Horas Lu-Vie</span>
+                <span class="cat-value val-lv">{{ item.total_lv|stringformat:".1f" }}</span>
+                <span class="cat-detail">Carga Semanal</span>
+            </div>
+            <div class="summary-col">
+                <span class="cat-label">Horas Sábados</span>
+                <span class="cat-value val-s">{{ item.total_s|stringformat:".1f" }}</span>
+                <span class="cat-detail">Carga Sáb.</span>
+            </div>
+            <div class="summary-col">
+                <span class="cat-label">Horas Dom/Fer</span>
+                <span class="cat-value val-df">{{ item.total_df|stringformat:".1f" }}</span>
+                <span class="cat-detail">Carga Dom/Fer.</span>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center; padding: 60pt; color: #94a3b8; border: 2pt dashed #e2e8f0; border-radius: 10pt;">
+        No existen registros de liquidación para el periodo y sector seleccionado.
+    </div>
+    {% endfor %}
+
+    <div class="signatures">
+        <div class="sig-box">
+            <div class="sig-line">Responsable de Cómputos</div>
+            <div class="sig-title">Dirección de Recursos Humanos</div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line">Director de RRHH</div>
+            <div class="sig-title">Certificación de Servicios</div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line">Recibido Hacienda</div>
+            <div class="sig-title">Control Presupuestario</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Este documento reviste carácter de declaración jurada. Generado por el Sistema de Gestión de RRHH de la Municipalidad de San Vicente.
+    </div>
+
+</body>
+</html>

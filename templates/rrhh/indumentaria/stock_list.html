@@ -1,0 +1,210 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Inventario de Indumentaria{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-3 align-items-center">
+            <div class="col-sm-6">
+                <h1 class="m-0 text-dark font-weight-bold">
+                    <i class="fas fa-boxes mr-2 text-primary"></i> Reporte de Stock - Indumentaria
+                </h1>
+            </div>
+            <div class="col-sm-6 text-right">
+                <a href="{% url 'rrhh:indumentaria_stock_import' %}" class="btn btn-outline-info font-weight-bold shadow-sm px-3 mr-2 rounded-pill">
+                    <i class="fas fa-file-excel mr-1"></i> Importar
+                </a>
+                <!-- Botón Nuevo Ítem (Abre Modal) -->
+                <button type="button" class="btn btn-primary font-weight-bold shadow-sm px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalNuevoStock">
+                    <i class="fas fa-plus mr-1"></i> Nuevo Ítem
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" style="border-radius: 10px;" role="alert">
+                    <i class="fas fa-info-circle mr-2"></i> {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card shadow-lg border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-header bg-dark border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title fw-bold text-white mb-0">
+                        <i class="fas fa-tshirt mr-2"></i> Inventario Actual
+                    </h3>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 custom-table">
+                        <thead class="bg-light text-muted text-uppercase small font-weight-bold">
+                            <tr>
+                                <th class="py-3 pl-4 border-0" style="width: 40%;">Tipo de Prenda</th>
+                                <th class="border-0 text-center" style="width: 20%;">Talle</th>
+                                <th class="border-0 text-center" style="width: 20%;">Stock Disponible</th>
+                                <th class="border-0 text-right pr-4" style="width: 20%;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in stock %}
+                            <tr>
+                                <td class="pl-4 py-3">
+                                    <div class="font-weight-bold text-dark h6 mb-1">{{ item.prenda }}</div>
+                                </td>
+                                
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-light text-dark border border-secondary shadow-sm px-3 py-2 rounded-pill" style="font-size: 0.9rem;">
+                                        {{ item.talle }}
+                                    </span>
+                                </td>
+                                
+                                <td class="text-center align-middle">
+                                    {% if item.cantidad > 10 %}
+                                        <div class="rounded-pill bg-success-light px-3 py-2 d-inline-block border border-success font-weight-bold text-success">
+                                            {{ item.cantidad }} u.
+                                        </div>
+                                    {% elif item.cantidad > 0 %}
+                                        <div class="rounded-pill px-3 py-2 d-inline-block border border-warning font-weight-bold text-warning" style="background-color: #fff8e1;">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> {{ item.cantidad }} u.
+                                        </div>
+                                    {% else %}
+                                        <div class="rounded-pill bg-danger px-3 py-2 d-inline-block text-white font-weight-bold shadow-sm">
+                                            <i class="fas fa-times-circle mr-1"></i> Sin Stock
+                                        </div>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-right align-middle pr-4">
+                                    <a href="{% url 'rrhh:indumentaria_stock_edit' item.id %}" class="btn btn-sm btn-outline-primary rounded-circle btn-action-circle shadow-sm mr-2" title="Editar Stock" data-bs-toggle="tooltip">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger rounded-circle btn-action-circle shadow-sm" title="Eliminar Ítem" data-bs-toggle="modal" data-bs-target="#modalDelete_{{ item.id }}">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- MODAL ELIMINAR -->
+                            <div class="modal fade" id="modalDelete_{{ item.id }}" tabindex="-1" aria-labelledby="modalLabel_{{ item.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+                                        <div class="modal-header bg-danger text-white border-0 py-3">
+                                            <h5 class="modal-title font-weight-bold" id="modalLabel_{{ item.id }}">
+                                                <i class="fas fa-exclamation-triangle mr-2"></i> Confirmar Eliminación
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-4 text-center">
+                                            <p class="mb-1 text-muted">¿Está seguro que desea eliminar este ítem del inventario?</p>
+                                            <h4 class="font-weight-bold text-dark my-3">{{ item.prenda }} - Talle {{ item.talle }}</h4>
+                                            <p class="small text-danger mb-0">Esta acción no se puede deshacer.</p>
+                                        </div>
+                                        <div class="modal-footer bg-light border-0 d-flex justify-content-between py-3">
+                                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                            <a href="{% url 'rrhh:indumentaria_stock_delete' item.id %}" class="btn btn-danger rounded-pill px-4 font-weight-bold shadow-sm">
+                                                <i class="fas fa-trash-alt mr-1"></i> Eliminar
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <div class="display-4 text-light mb-3"><i class="fas fa-box-open"></i></div>
+                                    <h5>No hay elementos registrados en el inventario.</h5>
+                                    <p class="small">Utilice el botón "Nuevo Ítem" para comenzar a cargar el stock.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL NUEVO STOCK -->
+        <div class="modal fade" id="modalNuevoStock" tabindex="-1" aria-labelledby="modalNuevoStockLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+                    <div class="modal-header bg-primary text-white border-0 py-3">
+                        <h5 class="modal-title font-weight-bold" id="modalNuevoStockLabel">
+                            <i class="fas fa-plus-circle mr-2"></i> Agregar Nuevo Ítem
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{% url 'rrhh:indumentaria_stock_list' %}">
+                        {% csrf_token %}
+                        <div class="modal-body p-4">
+                            <div class="alert alert-light border shadow-sm small text-muted mb-4">
+                                <i class="fas fa-info-circle mr-1"></i> Si la prenda y el talle ya existen en el sistema, la cantidad se <strong>sumará</strong> automáticamente al stock actual.
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label class="font-weight-bold small text-uppercase text-muted">Tipo de Prenda</label>
+                                <input type="text" name="prenda" class="form-control form-control-solid rounded-lg border border-secondary" placeholder="Ej: Camisa Grafa, Botines Seg." required>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group mb-0">
+                                        <label class="font-weight-bold small text-uppercase text-muted">Talle</label>
+                                        <input type="text" name="talle" class="form-control form-control-solid rounded-lg border border-secondary" placeholder="Ej: L, 42..." required>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group mb-0">
+                                        <label class="font-weight-bold small text-uppercase text-muted">Cantidad</label>
+                                        <input type="number" name="cantidad" class="form-control form-control-solid rounded-lg border border-secondary" min="1" value="1" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-0 d-flex justify-content-between py-3">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 font-weight-bold shadow-sm">
+                                <i class="fas fa-save mr-1"></i> Guardar Stock
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    /* Estilos Consistentes con RRHH */
+    .bg-success-light { background-color: #e6f4ea; }
+    .btn-action-circle { width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .btn-action-circle:hover { transform: scale(1.1); }
+    .custom-table tbody tr { transition: all 0.2s ease; border-bottom: 1px solid rgba(0,0,0,.05); }
+    .custom-table tbody tr:hover { background-color: #f8f9fc; transform: translateY(-1px); box-shadow: 0 2px 10px rgba(0,0,0,.03); z-index: 10; position: relative; }
+    .form-control-solid { background-color: #f5f6f8; border: 1px solid transparent; transition: all 0.3s; }
+    .form-control-solid:focus { background-color: #fff; border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+
+{% endblock %}

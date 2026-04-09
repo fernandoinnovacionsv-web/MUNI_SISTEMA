@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Asistencia - {{ sector.nombre }}</title>
+    <style>
+        @page { size: A4 landscape; margin: 10mm; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 10px; color: #334155; margin: 0; padding: 0; background-color: #fff; }
+        
+        .header {
+            width: 100%;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 15px; margin-bottom: 15px;
+        }
+        .muni-name { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .dept-name { font-size: 11px; font-weight: 600; color: #64748b; margin: 2px 0; }
+        .report-title {
+            font-size: 14px; font-weight: 700; margin-top: 8px; color: #3b82f6; text-transform: uppercase;
+        }
+
+        .info-bar { 
+            background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 20px; 
+            border: 1px solid #e2e8f0; height: 30px;
+        }
+        .info-item { display: inline-block; margin-right: 30px; }
+        .info-label { font-weight: 700; color: #64748b; font-size: 9px; text-transform: uppercase; }
+        .info-value { font-weight: 600; color: #0f172a; font-size: 10px; }
+
+        table.main-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table.main-table th { 
+            background-color: #f1f5f9; color: #475569; font-weight: 700; 
+            text-transform: uppercase; font-size: 9px; padding: 10px 8px;
+            border-bottom: 2px solid #cbd5e1; text-align: center;
+        }
+        table.main-table td { 
+            padding: 8px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;
+        }
+        table.main-table tr:nth-child(even) { background-color: #f8fafc; }
+        
+        .agente-cell { width: 30%; text-align: left !important; }
+        .agente-name { font-weight: 700; color: #0f172a; font-size: 11px; }
+        .agente-meta { color: #64748b; font-size: 9px; margin-top: 2px; }
+
+        .count-cell { font-weight: 600; text-align: center; font-size: 11px; }
+        .total-cell { 
+            background-color: #f1f5f9; font-weight: 800; color: #0f172a; 
+            border-left: 2px solid #cbd5e1; font-size: 12px;
+        }
+
+        .footer { 
+            position: fixed; bottom: 0; width: 100%; 
+            font-size: 8px; color: #94a3b8; text-align: center; 
+            border-top: 1px solid #e2e8f0; padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <table style="width:100%">
+            <tr>
+                <td style="width: 80px;">
+                    <img src="file:///D:/MUNI_SISTEMA/static/img/logo_muni_1.png" style="width:60px;">
+                </td>
+                <td>
+                    <div class="muni-name">Municipalidad de San Vicente</div>
+                    <div class="dept-name">Dirección de Recursos Humanos</div>
+                    <div class="report-title">Resumen Mensual de Asistencia: {{ sector.nombre }}</div>
+                </td>
+                <td style="text-align: right;">
+                    <img src="file:///D:/MUNI_SISTEMA/static/img/logo_rrhh.png" style="width:60px;">
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="info-bar">
+        <div class="info-item">
+            <span class="info-label">Periodo:</span>
+            <span class="info-value">{{ fecha_desde|date:"d/m/Y" }} - {{ fecha_hasta|date:"d/m/Y" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Sector:</span>
+            <span class="info-value">{{ sector.nombre }}</span>
+        </div>
+        <div class="info-item" style="float: right; margin-right: 0;">
+            <span class="info-label">Emisión:</span>
+            <span class="info-value">{{ fecha_actual|date:"d/m/Y" }}</span>
+        </div>
+    </div>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th class="agente-cell">Agente / Legajo / DNI</th>
+                <th>Presente</th>
+                <th>Franco</th>
+                <th>Ausente c/A</th>
+                <th>Ausente s/A</th>
+                <th>Tardanza</th>
+                <th class="total-cell">Total Días Hab.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in reporte_data %}
+            <tr>
+                <td class="agente-cell">
+                    <div class="agente-name">{{ item.empleado.apellido }}, {{ item.empleado.nombre }}</div>
+                    <div class="agente-meta">LEG: {{ item.empleado.legajo|default:"-" }} | DNI: {{ item.empleado.dni|default:"-" }}</div>
+                </td>
+                <td class="count-cell" style="color: #10b981;">{{ item.totales.PRESENTE }}</td>
+                <td class="count-cell" style="color: #6366f1;">{{ item.totales.FRANCO }}</td>
+                <td class="count-cell" style="color: #f59e0b;">{{ item.totales.AUSENTE_CON_AVISO }}</td>
+                <td class="count-cell" style="color: #ef4444;">{{ item.totales.AUSENTE_SIN_AVISO }}</td>
+                <td class="count-cell" style="color: #f97316;">{{ item.totales.TARDANZA }}</td>
+                <td class="count-cell total-cell">{{ item.total_dias }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align:center; padding: 40px; color: #94a3b8;">
+                    No se encontraron registros de asistencia para el periodo habilitado.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px; font-size: 9px; color: #64748b; line-height: 1.5;">
+        <strong>Nota:</strong> Los días hábiles se calculan excluyendo Sábados, Domingos y Feriados.<br>
+        * Por normativa de cierre de periodo, los días sin registro explícito se computan como PRESENTE.
+    </div>
+
+    <div class="footer">
+        Generado en el Sistema de Gestión Municipal | {% now "d/m/Y H:i" %} | Página 1
+    </div>
+
+</body>
+</html>

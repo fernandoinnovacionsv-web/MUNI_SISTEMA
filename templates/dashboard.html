@@ -1,0 +1,163 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Dashboard RRHH{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">📊 Panel General de Recursos Humanos</h3>
+    <span class="text-muted small">Actualizado: {{ now|date:"d/m/Y H:i" }}</span>
+  </div>
+
+  <!-- TARJETAS RESUMEN -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center">
+        <div class="card-body">
+          <h6 class="text-muted text-uppercase mb-2">Empleados Totales</h6>
+          <h2 class="fw-bold text-primary">{{ total_empleados }}</h2>
+          <i class="fas fa-users fa-lg text-primary"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center">
+        <div class="card-body">
+          <h6 class="text-muted text-uppercase mb-2">Activos</h6>
+          <h2 class="fw-bold text-success">{{ empleados_activos }}</h2>
+          <i class="fas fa-user-check fa-lg text-success"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center">
+        <div class="card-body">
+          <h6 class="text-muted text-uppercase mb-2">Inactivos</h6>
+          <h2 class="fw-bold text-danger">{{ empleados_inactivos }}</h2>
+          <i class="fas fa-user-times fa-lg text-danger"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center">
+        <div class="card-body">
+          <h6 class="text-muted text-uppercase mb-2">Vacaciones activas</h6>
+          <h2 class="fw-bold text-warning">{{ vacaciones_activas }}</h2>
+          <i class="fas fa-plane-departure fa-lg text-warning"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS -->
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light fw-bold">
+          Distribución de personal (activo / inactivo)
+        </div>
+        <div class="card-body">
+          <canvas id="chartEmpleados"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light fw-bold">
+          Vacaciones aprobadas (últimos 6 meses)
+        </div>
+        <div class="card-body">
+          <canvas id="chartVacaciones"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÚLTIMOS MOVIMIENTOS -->
+  <div class="card mt-4 shadow-sm">
+    <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center">
+      <span>🕓 Últimos movimientos</span>
+      <a href="{% url 'movimientos_list' %}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-striped table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Empleado</th>
+            <th>Usuario</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in ultimos_movimientos %}
+          <tr>
+            <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
+            <td><span class="badge bg-secondary">{{ m.tipo }}</span></td>
+            <td>{{ m.empleado }}</td>
+            <td>{{ m.usuario|default:"-" }}</td>
+            <td>{{ m.detalle|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-3">Sin movimientos recientes.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  // === Gráfico de empleados activos/inactivos ===
+  const ctx1 = document.getElementById("chartEmpleados");
+  new Chart(ctx1, {
+    type: "doughnut",
+    data: {
+      labels: ["Activos", "Inactivos"],
+      datasets: [{
+        data: [{{ empleados_activos }}, {{ empleados_inactivos }}],
+        backgroundColor: ["#198754", "#dc3545"],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: "bottom" }
+      }
+    }
+  });
+
+  // === Gráfico de vacaciones dinámico ===
+  const ctx2 = document.getElementById("chartVacaciones");
+  new Chart(ctx2, {
+    type: "bar",
+    data: {
+      labels: {{ vacaciones_labels|safe }},
+      datasets: [{
+        label: "Vacaciones aprobadas",
+        data: {{ vacaciones_data|safe }},
+        backgroundColor: "#ffc107"
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+});
+</script>
+{% endblock %}

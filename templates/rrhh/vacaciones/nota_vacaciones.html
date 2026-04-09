@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 0; }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            margin: 0; padding: 0;
+            color: #000;
+            background-color: #fff;
+        }
+
+        .seccion-comprobante {
+            height: 50vh; width: 100%;
+            padding: 35px 50px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Línea de corte para separar Original de Duplicado */
+        .linea-corte {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            border-top: 1px dashed #000;
+            text-align: center;
+        }
+        .linea-corte span {
+            position: relative; top: -10px; background: white;
+            padding: 0 15px; font-size: 10px; text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .header {
+            width: 100%;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px; margin-bottom: 15px;
+        }
+        .titulo-muni h1 { margin: 0; font-size: 18px; color: #000; letter-spacing: 1px; }
+        .titulo-muni p { margin: 2px 0; font-size: 10px; font-weight: bold; }
+
+        .badge-copia {
+            float: right; border: 1.5px solid #000;
+            padding: 4px 10px; font-size: 10px; font-weight: bold;
+        }
+
+        .datos-agente {
+            border: 1px solid #000;
+            padding: 10px; margin-bottom: 12px;
+        }
+        .label { font-weight: bold; text-transform: uppercase; font-size: 8px; width: 110px; color: #333; }
+
+        /* Tabla de detalles de la licencia */
+        .detalle-licencia {
+            width: 100%; border-collapse: collapse; margin: 10px 0;
+        }
+        .detalle-licencia td {
+            padding: 8px; border-bottom: 1px solid #000; font-size: 12px;
+        }
+        .detalle-licencia .highlight {
+            background-color: #f2f2f2;
+        }
+
+        .contenedor-firmas { width: 100%; margin-top: 40px; }
+        .firma-box { width: 45%; text-align: center; vertical-align: top; }
+        .linea-firma { border-top: 1px solid #000; margin: 45px 25px 5px 25px; }
+        .texto-firma { font-size: 9px; font-weight: bold; }
+
+        .footer-sistema {
+            position: absolute; bottom: 12px; right: 50px;
+            font-size: 7px; color: #000;
+        }
+    </style>
+</head>
+<body>
+
+{% for i in "12" %}
+<div class="seccion-comprobante">
+    <div class="header">
+        <table style="width:100%">
+            <tr>
+                <td style="width: 15%;">
+                    <img src="file:///D:/MUNI_SISTEMA/static/img/logo_muni_1.png" style="width:65px;">
+                </td>
+                <td style="text-align:center;" class="titulo-muni">
+                    <h1>MUNICIPALIDAD DE SAN VICENTE</h1>
+                    <p>DIRECCIÓN DE RECURSOS HUMANOS</p>
+                    <div style="font-size: 11px; font-weight: bold; margin-top:5px; text-decoration: underline;">
+                        NOTIFICACIÓN DE LICENCIA ANUAL ORDINARIA
+                    </div>
+                </td>
+                <td style="width: 15%; text-align: right;">
+                    <img src="file:///D:/MUNI_SISTEMA/static/img/logo_rrhh.png" style="width:65px;">
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="overflow: hidden; margin-bottom: 10px;">
+        <div style="float: left; font-size: 10px; line-height: 1.4;">
+            <strong>FECHA DE EMISIÓN:</strong> {{ fecha_actual|date:"d/m/Y" }}<br>
+            <strong>REGISTRADO POR:</strong> {% if usuario.get_full_name %}{{ usuario.get_full_name|upper }}{% else %}{{ usuario.username }}{% endif %}
+        </div>
+        <span class="badge-copia">
+            {% if forloop.first %}ORIGINAL (PARA LEGAJO){% else %}DUPLICADO (PARA AGENTE){% endif %}
+        </span>
+    </div>
+
+    <div class="datos-agente">
+        <table style="width:100%; font-size: 11px; border-collapse: collapse;">
+            <tr>
+                <td class="label">Agente:</td>
+                <td style="font-weight:bold; font-size: 13px;">{{ empleado.apellido|upper }}, {{ empleado.nombre|upper }}</td>
+                <td class="label" style="text-align: right; padding-right: 10px;">Legajo:</td>
+                <td style="font-weight:bold;">{{ empleado.legajo|default:"---" }}</td>
+            </tr>
+            <tr>
+                <td class="label">DNI:</td>
+                <td>{{ empleado.dni }}</td>
+                <td class="label" style="text-align: right; padding-right: 10px;">Sector:</td>
+                <td>{{ empleado.sector|upper|default:"GENERAL" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="detalle-licencia">
+        <tr>
+            <td class="label">Año Período:</td>
+            <td><strong>{{ vacacion.anio }}</strong></td>
+            <td class="label">Días Totales:</td>
+            <td>{{ dias_correspondientes }} DÍAS</td>
+        </tr>
+        <tr>
+            <td class="label">Desde:</td>
+            <td><strong>{{ vacacion.fecha_inicio|date:"d/m/Y" }}</strong></td>
+            <td class="label">Días Solicitados:</td>
+            <td class="highlight"><strong>{{ dias_tomados }} DÍAS</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Hasta (inclusive):</td>
+            <td><strong>{{ vacacion.fecha_fin|date:"d/m/Y" }}</strong></td>
+            <td class="label">Saldo Restante:</td>
+            <td class="highlight"><strong>{{ saldo_restante }} DÍAS</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Fecha Reintegro:</td>
+            <td colspan="3" style="font-size: 14px;">
+                <strong>{{ fecha_reintegro|date:"d/m/Y" }}</strong> 
+               
+            </td>
+        </tr>
+    </table>
+
+    <table class="contenedor-firmas">
+        <tr>
+            <td class="firma-box">
+                <div class="linea-firma"></div>
+                <div class="texto-firma">FIRMA Y ACLARACIÓN DEL AGENTE</div>
+            </td>
+            <td style="width:10%"></td>
+            <td class="firma-box">
+                <div class="linea-firma"></div>
+                <div class="texto-firma">DIRECCIÓN DE RECURSOS HUMANOS</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer-sistema">
+        HUB RRHH | Operador: {% if usuario.get_full_name %}{{ usuario.get_full_name }}{% else %}{{ usuario.username }}{% endif %} | Impreso: {% now "d/m/Y H:i" %}
+    </div>
+
+    {% if forloop.first %}
+    <div class="linea-corte">
+        <span>✂ CORTE POR AQUÍ ✂</span>
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+</body>
+</html>

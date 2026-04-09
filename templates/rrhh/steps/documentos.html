@@ -1,0 +1,61 @@
+<h5 class="section-title">Documentos</h5>
+
+{{ documentos_formset.management_form }}
+
+<div id="docs-container">
+
+    {% for form in documentos_formset %}
+    <div class="form-inline-box form-row-dynamic mb-3 p-3 border rounded bg-white">
+        
+        {{ form.id }}
+
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-bold">Tipo de documento</label>
+                {{ form.tipo }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small fw-bold">Archivo</label>
+                {{ form.archivo }}
+            </div>
+            
+            {% if form.DELETE %}
+            <div class="col-md-2 text-end">
+                <div class="d-none">{{ form.DELETE }}</div> 
+                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<div id="empty-form-doc" class="d-none">
+    <div class="form-inline-box form-row-dynamic mb-3 p-3 border rounded bg-white">
+        
+        {{ documentos_formset.empty_form.id }}
+
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-bold">Tipo de documento</label>
+                {{ documentos_formset.empty_form.tipo }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small fw-bold">Archivo</label>
+                {{ documentos_formset.empty_form.archivo }}
+            </div>
+            <div class="col-md-2 text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="btn btn-outline-primary btn-sm mt-2 fw-bold" onclick="addForm('docs-container', 'docs', 'empty-form-doc')">
+    <i class="fas fa-plus-circle me-1"></i> Agregar documento
+</button>

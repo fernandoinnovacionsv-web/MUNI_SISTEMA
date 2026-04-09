@@ -1,0 +1,121 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-file-medical text-primary"></i> Gestión de Licencias</h2>
+        <div>
+            {% if is_rrhh %}
+            <a href="{% url 'rrhh:licencias_config' %}" class="btn btn-secondary"><i class="fas fa-cogs"></i> Tipos de Licencias</a>
+            {% endif %}
+            <a href="{% url 'rrhh:licencias_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Solicitud</a>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Listado de Solicitudes</h6>
+        </div>
+        <div class="card-body">
+            <!-- Filtros -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <input type="text" name="empleado" class="form-control" placeholder="Buscar empleado..." value="{{ request.GET.empleado }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="estado" class="form-select">
+                        <option value="">Todos los Estados</option>
+                        <option value="Pendiente_Certificado" {% if request.GET.estado == 'Pendiente_Certificado' %}selected{% endif %}>Pendiente</option>
+                        <option value="Entregado" {% if request.GET.estado == 'Entregado' %}selected{% endif %}>Entregado</option>
+                        <option value="Aprobada" {% if request.GET.estado == 'Aprobada' %}selected{% endif %}>Aprobada</option>
+                        <option value="Rechazada" {% if request.GET.estado == 'Rechazada' %}selected{% endif %}>Rechazada</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-secondary w-100"><i class="fas fa-search"></i> Filtrar</button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Empleado</th>
+                            <th>Tipo Licencia</th>
+                            <th>Período</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sol in solicitudes %}
+                        <tr>
+                            <td>{{ sol.fecha_solicitud|date:"d/m/Y" }}</td>
+                            <td>
+                                <strong>{{ sol.empleado.get_short_name }}</strong><br>
+                                <small class="text-muted">{{ sol.empleado.sector.nombre }}</small>
+                            </td>
+                            <td>{{ sol.tipo_licencia.nombre }}</td>
+                            <td>{{ sol.fecha_desde|date:"d/m/Y" }} al {{ sol.fecha_hasta|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if sol.estado == 'Pendiente_Certificado' %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Pendiente</span>
+                                {% elif sol.estado == 'Entregado' %}
+                                    <span class="badge bg-primary"><i class="fas fa-file-upload"></i> Entregado</span>
+                                {% elif sol.estado == 'Aprobada' %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Aprobada</span>
+                                {% elif sol.estado == 'Rechazada' %}
+                                    <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Rechazada</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if is_rrhh %}
+                                    <a href="{% url 'rrhh:seguimiento_detalle' sol.id %}" class="btn btn-sm btn-outline-primary" title="Detalle/Seguimiento">
+                                        <i class="fas fa-stethoscope"></i>
+                                    </a>
+                                    {% if sol.estado != 'Aprobada' and sol.estado != 'Rechazada' %}
+                                    <a href="{% url 'rrhh:licencias_edit' sol.id %}" class="btn btn-sm btn-outline-success" title="Aprobar/Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'rrhh:licencias_edit' sol.id %}" class="btn btn-sm btn-success" title="Ver/Modificar Aprobación">
+                                        <i class="fas fa-check-double"></i>
+                                    </a>
+                                    {% endif %}
+                                {% else %}
+                                    <!-- Vista Jefe Sector -->
+                                    <a href="{% url 'rrhh:seguimiento_detalle' sol.id %}" class="btn btn-sm btn-outline-secondary" title="Ver Detalle">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if sol.estado == 'Aprobada' %}
+                                        <span class="btn btn-sm btn-light disabled" title="Aprobada - No editable"><i class="fas fa-lock"></i></span>
+                                        <a href="{% url 'rrhh:licencias_extension' sol.id %}" class="btn btn-sm btn-warning" title="Extender Licencia">
+                                            <i class="fas fa-calendar-plus text-white"></i>
+                                        </a>
+                                    {% else %}
+                                        {% if sol.estado == 'Pendiente_Certificado' or sol.estado == 'Entregado' %}
+                                        <a href="{% url 'rrhh:licencias_edit' sol.id %}" class="btn btn-sm btn-outline-info" title="Editar/Subir Certificado">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                        <a href="{% url 'rrhh:licencias_extension' sol.id %}" class="btn btn-sm btn-outline-warning" title="Extender Licencia">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No hay solicitudes registradas con los filtros actuales.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

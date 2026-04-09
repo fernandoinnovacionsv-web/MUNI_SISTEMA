@@ -1,0 +1,52 @@
+<h5 class="section-title">Datos laborales</h5>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Legajo</label>
+        {{ empleado_form.legajo }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Sector</label>
+        {{ empleado_form.sector }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Subsector</label>
+        {{ empleado_form.subsector }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Categoría (1–24)</label>
+        {{ empleado_form.categoria }}
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Condición</label>
+        {{ empleado_form.condicion }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Turno</label>
+        {{ empleado_form.turno }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Inicio contrato</label>
+        {{ empleado_form.fecha_inicio_contrato }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Fin contrato</label>
+        {{ empleado_form.fecha_fin_contrato }}
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold">Inicio actividad</label>
+        {{ empleado_form.inicio_actividad }}
+    </div>
+    <div class="col-md-2">
+        <label class="form-label text-muted small fw-bold">Activo</label><br>
+        <div class="form-check mt-1">
+            {{ empleado_form.activo }}
+        </div>
+    </div>
+</div>

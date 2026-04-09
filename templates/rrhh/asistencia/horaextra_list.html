@@ -1,0 +1,38 @@
+{% extends 'base_adminlte.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark py-3">
+                    <h5 class="mb-0 text-white fw-bold"><i class="fas fa-clock mr-2 text-warning"></i> Personal para Horas Extras - {{ sector.nombre }}</h5>
+                </div>
+                <div class="card-body p-0 text-center">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr class="bg-light">
+                                <th class="text-left pl-4">Empleado</th>
+                                <th>Legajo</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in personal %}
+                            <tr>
+                                <td class="text-left pl-4 fw-bold">{{ emp.apellido }}, {{ emp.nombre }}</td>
+                                <td>{{ emp.legajo }}</td>
+                                <td>
+                                    <a href="{% url 'rrhh:cargar_detalle_horas' emp.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        Registrar Horas <i class="fas fa-chevron-right ml-1"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

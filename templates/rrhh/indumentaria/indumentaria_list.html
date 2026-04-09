@@ -1,0 +1,103 @@
+{% extends 'base_adminlte.html' %}
+{% load static %}
+
+{% block title %}Indumentaria – Personal{% endblock %}
+
+{% block content %}
+
+<div class="card card-outline card-primary shadow-sm">
+    
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title text-primary font-weight-bold">
+                <i class="fas fa-tshirt me-2"></i> Entrega de Indumentaria
+            </h3>
+            
+            <div class="card-tools">
+                <a href="{% url 'rrhh:indumentaria_stock_list' %}" class="btn btn-warning text-dark btn-sm shadow-sm">
+                    <i class="fas fa-boxes me-1"></i> Gestión de Stock
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+
+        <div class="p-3 mb-4 bg-light rounded border">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small text-muted">Búsqueda General</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                        <input type="text" name="q" value="{{ request.GET.q }}"
+                               class="form-control" placeholder="Buscar por nombre, apellido, DNI o legajo">
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small text-muted">Filtrar por Sector</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-building"></i></span>
+                        <input type="text" name="sector" value="{{ request.GET.sector }}"
+                               class="form-control" placeholder="Ej: Mantenimiento">
+                    </div>
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button class="btn btn-primary w-100 fw-bold">
+                        <i class="fas fa-filter me-1"></i> Buscar
+                    </button>
+                    <a href="{% url 'rrhh:indumentaria_list' %}" class="btn btn-secondary w-100" title="Limpiar filtros">
+                        <i class="fas fa-eraser"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle text-nowrap">
+                <thead class="bg-primary text-white text-center">
+                    <tr>
+                        <th scope="col" class="py-3">Legajo</th>
+                        <th scope="col" class="py-3">DNI</th>
+                        <th scope="col" class="py-3">Agente</th>
+                        <th scope="col" class="py-3">Sector</th>
+                        <th scope="col" class="py-3" style="width:120px;">Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for emp in empleados %}
+                    <tr>
+                        <td class="text-center fw-bold">{{ emp.legajo }}</td>
+                        <td class="text-center">{{ emp.dni }}</td>
+                        <td class="fw-bold">{{ emp.get_short_name }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ emp.sector }}</span></td>
+
+                        <td class="text-center">
+                            <a href="{% url 'rrhh:indumentaria_historial' emp.id %}" 
+                               class="btn btn-sm btn-info text-white shadow-sm"
+                               data-toggle="tooltip" title="Ver Historial y Entregas">
+                                <i class="fas fa-history me-1"></i> Gestionar
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="fas fa-users-slash fa-3x mb-3 text-secondary"></i>
+                                <h5>No se encontraron empleados</h5>
+                                <p class="small">Intenta con otros criterios de búsqueda.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+        
+        </div>
+</div>
+
+{% endblock %}
